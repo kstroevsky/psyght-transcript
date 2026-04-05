@@ -1,0 +1,4 @@
+psycopg
+psycopg-binary
+psycopg-pool
+sentence-transformers

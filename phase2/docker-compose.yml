@@ -1,0 +1,17 @@
+services:
+  postgres:
+    # ParadeDB bundles PostgreSQL, pgvector, and BM25 search in one local service.
+    image: paradedb/paradedb:latest
+    container_name: meetings-db
+    environment:
+      POSTGRES_DB: meetings
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-secret}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./db/migrations:/docker-entrypoint-initdb.d
+
+volumes:
+  pgdata:
