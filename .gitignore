@@ -1,0 +1,26 @@
+# macOS and Python caches
+.DS_Store
+__pycache__/
+*.py[cod]
+
+# Virtual environments
+.venv/
+venv/
+phase1/.venv/
+phase1/venv/
+phase1/.deepfilter-venv/
+phase1/.ctc-kenlm-venv/
+phase1/.canary-venv/
+phase1/.qwen-asr-venv/
+
+# Local environment files
+.env
+phase1/.env
+phase2/.env
+phase3/.env
+
+# Local model and runtime outputs
+phase1/models/
+phase1/runs/
+phase1/review_chunks/
+phase1/.ollama/
