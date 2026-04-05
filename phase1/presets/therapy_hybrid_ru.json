@@ -1,0 +1,19 @@
+{
+  "id": "therapy_hybrid_ru",
+  "description": "Russian therapy pipeline with WhisperX VAD, CTC anchor, timestamp guard, and Qwen merge.",
+  "pipeline": {
+    "language": "ru",
+    "min_speakers": 2,
+    "max_speakers": 2
+  },
+  "backend": {
+    "id": "therapy_hybrid",
+    "options": {
+      "merge_provider": {
+        "id": "ollama",
+        "model": "qwen3:8b",
+        "base_url": "http://127.0.0.1:11434"
+      }
+    }
+  }
+}
