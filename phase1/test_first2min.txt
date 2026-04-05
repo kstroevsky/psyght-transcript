@@ -1,0 +1,15 @@
+[00:00:04.20 -> 00:00:05.18] SPEAKER_UNKNOWN: Hello, how are you?
+[00:00:05.20 -> 00:00:20.67] SPEAKER_UNKNOWN: I have a feeling that it has been a long time since our last therapy.
+[00:00:36.30 -> 00:00:39.25] SPEAKER_UNKNOWN: It's interesting why you have so many things in my life.
+[00:00:39.31 -> 00:00:40.21] SPEAKER_UNKNOWN: Well, not in real life.
+[00:00:40.23 -> 00:00:45.89] SPEAKER_UNKNOWN: I decided to fix everything on ViveCoding.
+[00:00:46.27 -> 00:00:48.87] SPEAKER_UNKNOWN: You all know that it is programming with AI tools.
+[00:01:01.82 -> 00:01:08.33] SPEAKER_UNKNOWN: Well, there are very cool instruments where the AI automatically sees all the code.
+[00:01:08.36 -> 00:01:09.33] SPEAKER_UNKNOWN: It doesn't need to send it to you.
+[00:01:09.34 -> 00:01:11.41] SPEAKER_UNKNOWN: You set a task for it and it doesn't solve it yet.
+[00:01:11.50 -> 00:01:12.05] SPEAKER_UNKNOWN: It doesn't stop.
+[00:01:12.06 -> 00:01:14.37] SPEAKER_UNKNOWN: It can test its solution on its own.
+[00:01:24.46 -> 00:01:28.26] SPEAKER_UNKNOWN: This is interesting, because it's a type of task that requires them to control.
+[00:01:33.39 -> 00:01:37.11] SPEAKER_UNKNOWN: Here, I also need to write in a good way.
+[00:01:37.16 -> 00:01:41.98] SPEAKER_UNKNOWN: But actually I am very, very impressed by how well it works.
+[00:01:42.08 -> 00:01:55.86] SPEAKER_UNKNOWN: So here is an additional confirmation that most likely for the next five years there will be almost no developers as a profession but there will be some work on computers.

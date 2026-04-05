@@ -1,0 +1,1110 @@
+{
+  "language": "en",
+  "duration": 119.999,
+  "segments": [
+    {
+      "speaker": "SPEAKER_UNKNOWN",
+      "start": 4.2,
+      "end": 5.181,
+      "text": "Hello, how are you?",
+      "words": [
+        {
+          "word": "Hello,",
+          "start": 4.2,
+          "end": 4.44,
+          "score": 0.445
+        },
+        {
+          "word": "how",
+          "start": 4.48,
+          "end": 4.66,
+          "score": 0.485
+        },
+        {
+          "word": "are",
+          "start": 4.701,
+          "end": 4.841,
+          "score": 0.334
+        },
+        {
+          "word": "you?",
+          "start": 5.021,
+          "end": 5.181,
+          "score": 0.404
+        }
+      ]
+    },
+    {
+      "speaker": "SPEAKER_UNKNOWN",
+      "start": 5.201,
+      "end": 20.672,
+      "text": "I have a feeling that it has been a long time since our last therapy.",
+      "words": [
+        {
+          "word": "I",
+          "start": 5.201,
+          "end": 5.221,
+          "score": 0.0
+        },
+        {
+          "word": "have",
+          "start": 5.241,
+          "end": 5.361,
+          "score": 0.45
+        },
+        {
+          "word": "a",
+          "start": 5.421,
+          "end": 5.461,
+          "score": 0.309
+        },
+        {
+          "word": "feeling",
+          "start": 5.541,
+          "end": 5.721,
+          "score": 0.2
+        },
+        {
+          "word": "that",
+          "start": 17.089,
+          "end": 17.209,
+          "score": 0.274
+        },
+        {
+          "word": "it",
+          "start": 17.309,
+          "end": 17.429,
+          "score": 0.806
+        },
+        {
+          "word": "has",
+          "start": 17.449,
+          "end": 17.69,
+          "score": 0.296
+        },
+        {
+          "word": "been",
+          "start": 17.77,
+          "end": 17.89,
+          "score": 0.303
+        },
+        {
+          "word": "a",
+          "start": 17.93,
+          "end": 17.99,
+          "score": 0.518
+        },
+        {
+          "word": "long",
+          "start": 18.63,
+          "end": 18.85,
+          "score": 0.505
+        },
+        {
+          "word": "time",
+          "start": 19.351,
+          "end": 19.691,
+          "score": 0.742
+        },
+        {
+          "word": "since",
+          "start": 19.731,
+          "end": 19.951,
+          "score": 0.542
+        },
+        {
+          "word": "our",
+          "start": 19.991,
+          "end": 20.171,
+          "score": 0.234
+        },
+        {
+          "word": "last",
+          "start": 20.191,
+          "end": 20.452,
+          "score": 0.336
+        },
+        {
+          "word": "therapy.",
+          "start": 20.472,
+          "end": 20.672,
+          "score": 0.244
+        }
+      ]
+    },
+    {
+      "speaker": "SPEAKER_UNKNOWN",
+      "start": 36.305,
+      "end": 39.246,
+      "text": "It's interesting why you have so many things in my life.",
+      "words": [
+        {
+          "word": "It's",
+          "start": 36.305,
+          "end": 36.525,
+          "score": 0.526
+        },
+        {
+          "word": "interesting",
+          "start": 36.545,
+          "end": 37.025,
+          "score": 0.383
+        },
+        {
+          "word": "why",
+          "start": 37.566,
+          "end": 37.706,
+          "score": 0.188
+        },
+        {
+          "word": "you",
+          "start": 37.726,
+          "end": 37.786,
+          "score": 0.04
+        },
+        {
+          "word": "have",
+          "start": 37.826,
+          "end": 37.966,
+          "score": 0.466
+        },
+        {
+          "word": "so",
+          "start": 37.986,
+          "end": 38.126,
+          "score": 0.546
+        },
+        {
+          "word": "many",
+          "start": 38.146,
+          "end": 38.406,
+          "score": 0.625
+        },
+        {
+          "word": "things",
+          "start": 38.426,
+          "end": 38.586,
+          "score": 0.268
+        },
+        {
+          "word": "in",
+          "start": 38.686,
+          "end": 38.746,
+          "score": 0.22
+        },
+        {
+          "word": "my",
+          "start": 38.766,
+          "end": 38.866,
+          "score": 0.556
+        },
+        {
+          "word": "life.",
+          "start": 39.006,
+          "end": 39.246,
+          "score": 0.52
+        }
+      ]
+    },
+    {
+      "speaker": "SPEAKER_UNKNOWN",
+      "start": 39.306,
+      "end": 40.207,
+      "text": "Well, not in real life.",
+      "words": [
+        {
+          "word": "Well,",
+          "start": 39.306,
+          "end": 39.527,
+          "score": 0.464
+        },
+        {
+          "word": "not",
+          "start": 39.587,
+          "end": 39.687,
+          "score": 0.358
+        },
+        {
+          "word": "in",
+          "start": 39.707,
+          "end": 39.747,
+          "score": 0.004
+        },
+        {
+          "word": "real",
+          "start": 39.767,
+          "end": 40.007,
+          "score": 0.537
+        },
+        {
+          "word": "life.",
+          "start": 40.027,
+          "end": 40.207,
+          "score": 0.443
+        }
+      ]
+    },
+    {
+      "speaker": "SPEAKER_UNKNOWN",
+      "start": 40.227,
+      "end": 45.89,
+      "text": "I decided to fix everything on ViveCoding.",
+      "words": [
+        {
+          "word": "I",
+          "start": 40.227,
+          "end": 40.247,
+          "score": 0.01
+        },
+        {
+          "word": "decided",
+          "start": 40.267,
+          "end": 40.807,
+          "score": 0.618
+        },
+        {
+          "word": "to",
+          "start": 40.827,
+          "end": 40.907,
+          "score": 0.326
+        },
+        {
+          "word": "fix",
+          "start": 40.947,
+          "end": 41.428,
+          "score": 0.598
+        },
+        {
+          "word": "everything",
+          "start": 43.509,
+          "end": 44.309,
+          "score": 0.515
+        },
+        {
+          "word": "on",
+          "start": 44.509,
+          "end": 44.769,
+          "score": 0.684
+        },
+        {
+          "word": "ViveCoding.",
+          "start": 44.789,
+          "end": 45.89,
+          "score": 0.377
+        }
+      ]
+    },
+    {
+      "speaker": "SPEAKER_UNKNOWN",
+      "start": 46.27,
+      "end": 48.871,
+      "text": "You all know that it is programming with AI tools.",
+      "words": [
+        {
+          "word": "You",
+          "start": 46.27,
+          "end": 46.61,
+          "score": 0.512
+        },
+        {
+          "word": "all",
+          "start": 46.69,
+          "end": 46.77,
+          "score": 0.278
+        },
+        {
+          "word": "know",
+          "start": 46.79,
+          "end": 47.21,
+          "score": 0.419
+        },
+        {
+          "word": "that",
+          "start": 47.27,
+          "end": 47.37,
+          "score": 0.122
+        },
+        {
+          "word": "it",
+          "start": 47.43,
+          "end": 47.49,
+          "score": 0.258
+        },
+        {
+          "word": "is",
+          "start": 47.571,
+          "end": 47.691,
+          "score": 0.527
+        },
+        {
+          "word": "programming",
+          "start": 47.731,
+          "end": 48.151,
+          "score": 0.351
+        },
+        {
+          "word": "with",
+          "start": 48.191,
+          "end": 48.351,
+          "score": 0.271
+        },
+        {
+          "word": "AI",
+          "start": 48.471,
+          "end": 48.691,
+          "score": 0.548
+        },
+        {
+          "word": "tools.",
+          "start": 48.711,
+          "end": 48.871,
+          "score": 0.34
+        }
+      ]
+    },
+    {
+      "speaker": "SPEAKER_UNKNOWN",
+      "start": 61.823,
+      "end": 68.325,
+      "text": "Well, there are very cool instruments where the AI automatically sees all the code.",
+      "words": [
+        {
+          "word": "Well,",
+          "start": 61.823,
+          "end": 62.323,
+          "score": 0.681
+        },
+        {
+          "word": "there",
+          "start": 62.643,
+          "end": 63.023,
+          "score": 0.562
+        },
+        {
+          "word": "are",
+          "start": 63.083,
+          "end": 63.283,
+          "score": 0.34
+        },
+        {
+          "word": "very",
+          "start": 63.303,
+          "end": 63.543,
+          "score": 0.532
+        },
+        {
+          "word": "cool",
+          "start": 63.583,
+          "end": 63.984,
+          "score": 0.544
+        },
+        {
+          "word": "instruments",
+          "start": 64.024,
+          "end": 64.564,
+          "score": 0.822
+        },
+        {
+          "word": "where",
+          "start": 64.624,
+          "end": 64.944,
+          "score": 0.577
+        },
+        {
+          "word": "the",
+          "start": 64.964,
+          "end": 65.624,
+          "score": 0.619
+        },
+        {
+          "word": "AI",
+          "start": 66.824,
+          "end": 67.144,
+          "score": 0.76
+        },
+        {
+          "word": "automatically",
+          "start": 67.164,
+          "end": 67.664,
+          "score": 0.376
+        },
+        {
+          "word": "sees",
+          "start": 67.724,
+          "end": 67.944,
+          "score": 0.449
+        },
+        {
+          "word": "all",
+          "start": 67.964,
+          "end": 68.024,
+          "score": 0.012
+        },
+        {
+          "word": "the",
+          "start": 68.044,
+          "end": 68.145,
+          "score": 0.174
+        },
+        {
+          "word": "code.",
+          "start": 68.185,
+          "end": 68.325,
+          "score": 0.428
+        }
+      ]
+    },
+    {
+      "speaker": "SPEAKER_UNKNOWN",
+      "start": 68.365,
+      "end": 69.325,
+      "text": "It doesn't need to send it to you.",
+      "words": [
+        {
+          "word": "It",
+          "start": 68.365,
+          "end": 68.445,
+          "score": 0.912
+        },
+        {
+          "word": "doesn't",
+          "start": 68.465,
+          "end": 68.645,
+          "score": 0.221
+        },
+        {
+          "word": "need",
+          "start": 68.665,
+          "end": 68.785,
+          "score": 0.189
+        },
+        {
+          "word": "to",
+          "start": 68.805,
+          "end": 68.865,
+          "score": 0.403
+        },
+        {
+          "word": "send",
+          "start": 68.885,
+          "end": 69.005,
+          "score": 0.298
+        },
+        {
+          "word": "it",
+          "start": 69.025,
+          "end": 69.065,
+          "score": 0.019
+        },
+        {
+          "word": "to",
+          "start": 69.085,
+          "end": 69.125,
+          "score": 0.052
+        },
+        {
+          "word": "you.",
+          "start": 69.145,
+          "end": 69.325,
+          "score": 0.499
+        }
+      ]
+    },
+    {
+      "speaker": "SPEAKER_UNKNOWN",
+      "start": 69.345,
+      "end": 71.405,
+      "text": "You set a task for it and it doesn't solve it yet.",
+      "words": [
+        {
+          "word": "You",
+          "start": 69.345,
+          "end": 69.425,
+          "score": 0.152
+        },
+        {
+          "word": "set",
+          "start": 69.445,
+          "end": 69.505,
+          "score": 0.021
+        },
+        {
+          "word": "a",
+          "start": 69.525,
+          "end": 69.545,
+          "score": 0.046
+        },
+        {
+          "word": "task",
+          "start": 69.585,
+          "end": 69.765,
+          "score": 0.56
+        },
+        {
+          "word": "for",
+          "start": 69.805,
+          "end": 69.925,
+          "score": 0.573
+        },
+        {
+          "word": "it",
+          "start": 69.985,
+          "end": 70.025,
+          "score": 0.173
+        },
+        {
+          "word": "and",
+          "start": 70.045,
+          "end": 70.165,
+          "score": 0.202
+        },
+        {
+          "word": "it",
+          "start": 70.205,
+          "end": 70.325,
+          "score": 0.556
+        },
+        {
+          "word": "doesn't",
+          "start": 70.345,
+          "end": 70.865,
+          "score": 0.569
+        },
+        {
+          "word": "solve",
+          "start": 70.885,
+          "end": 71.185,
+          "score": 0.391
+        },
+        {
+          "word": "it",
+          "start": 71.225,
+          "end": 71.305,
+          "score": 0.378
+        },
+        {
+          "word": "yet.",
+          "start": 71.325,
+          "end": 71.405,
+          "score": 0.071
+        }
+      ]
+    },
+    {
+      "speaker": "SPEAKER_UNKNOWN",
+      "start": 71.505,
+      "end": 72.045,
+      "text": "It doesn't stop.",
+      "words": [
+        {
+          "word": "It",
+          "start": 71.505,
+          "end": 71.605,
+          "score": 0.42
+        },
+        {
+          "word": "doesn't",
+          "start": 71.725,
+          "end": 71.905,
+          "score": 0.156
+        },
+        {
+          "word": "stop.",
+          "start": 71.945,
+          "end": 72.045,
+          "score": 0.126
+        }
+      ]
+    },
+    {
+      "speaker": "SPEAKER_UNKNOWN",
+      "start": 72.065,
+      "end": 74.366,
+      "text": "It can test its solution on its own.",
+      "words": [
+        {
+          "word": "It",
+          "start": 72.065,
+          "end": 72.105,
+          "score": 0.219
+        },
+        {
+          "word": "can",
+          "start": 72.145,
+          "end": 72.285,
+          "score": 0.488
+        },
+        {
+          "word": "test",
+          "start": 72.305,
+          "end": 72.465,
+          "score": 0.318
+        },
+        {
+          "word": "its",
+          "start": 72.766,
+          "end": 72.826,
+          "score": 0.038
+        },
+        {
+          "word": "solution",
+          "start": 72.846,
+          "end": 73.286,
+          "score": 0.549
+        },
+        {
+          "word": "on",
+          "start": 73.546,
+          "end": 73.666,
+          "score": 0.619
+        },
+        {
+          "word": "its",
+          "start": 73.686,
+          "end": 74.206,
+          "score": 0.825
+        },
+        {
+          "word": "own.",
+          "start": 74.286,
+          "end": 74.366,
+          "score": 0.194
+        }
+      ]
+    },
+    {
+      "speaker": "SPEAKER_UNKNOWN",
+      "start": 84.457,
+      "end": 88.26,
+      "text": "This is interesting, because it's a type of task that requires them to control.",
+      "words": [
+        {
+          "word": "This",
+          "start": 84.457,
+          "end": 84.638,
+          "score": 0.291
+        },
+        {
+          "word": "is",
+          "start": 84.658,
+          "end": 84.718,
+          "score": 0.232
+        },
+        {
+          "word": "interesting,",
+          "start": 84.738,
+          "end": 85.178,
+          "score": 0.481
+        },
+        {
+          "word": "because",
+          "start": 85.198,
+          "end": 85.518,
+          "score": 0.277
+        },
+        {
+          "word": "it's",
+          "start": 85.598,
+          "end": 85.758,
+          "score": 0.457
+        },
+        {
+          "word": "a",
+          "start": 86.199,
+          "end": 86.259,
+          "score": 0.308
+        },
+        {
+          "word": "type",
+          "start": 86.339,
+          "end": 86.679,
+          "score": 0.569
+        },
+        {
+          "word": "of",
+          "start": 86.799,
+          "end": 86.899,
+          "score": 0.46
+        },
+        {
+          "word": "task",
+          "start": 86.939,
+          "end": 87.059,
+          "score": 0.346
+        },
+        {
+          "word": "that",
+          "start": 87.079,
+          "end": 87.219,
+          "score": 0.468
+        },
+        {
+          "word": "requires",
+          "start": 87.339,
+          "end": 87.76,
+          "score": 0.364
+        },
+        {
+          "word": "them",
+          "start": 87.8,
+          "end": 87.92,
+          "score": 0.196
+        },
+        {
+          "word": "to",
+          "start": 87.94,
+          "end": 88.04,
+          "score": 0.322
+        },
+        {
+          "word": "control.",
+          "start": 88.06,
+          "end": 88.26,
+          "score": 0.275
+        }
+      ]
+    },
+    {
+      "speaker": "SPEAKER_UNKNOWN",
+      "start": 93.393,
+      "end": 97.115,
+      "text": "Here, I also need to write in a good way.",
+      "words": [
+        {
+          "word": "Here,",
+          "start": 93.393,
+          "end": 93.573,
+          "score": 0.49
+        },
+        {
+          "word": "I",
+          "start": 93.653,
+          "end": 93.733,
+          "score": 0.693
+        },
+        {
+          "word": "also",
+          "start": 93.813,
+          "end": 94.213,
+          "score": 0.666
+        },
+        {
+          "word": "need",
+          "start": 94.433,
+          "end": 95.374,
+          "score": 0.732
+        },
+        {
+          "word": "to",
+          "start": 95.394,
+          "end": 95.534,
+          "score": 0.719
+        },
+        {
+          "word": "write",
+          "start": 95.554,
+          "end": 96.074,
+          "score": 0.532
+        },
+        {
+          "word": "in",
+          "start": 96.334,
+          "end": 96.554,
+          "score": 0.468
+        },
+        {
+          "word": "a",
+          "start": 96.594,
+          "end": 96.674,
+          "score": 0.514
+        },
+        {
+          "word": "good",
+          "start": 96.714,
+          "end": 96.895,
+          "score": 0.418
+        },
+        {
+          "word": "way.",
+          "start": 96.915,
+          "end": 97.115,
+          "score": 0.462
+        }
+      ]
+    },
+    {
+      "speaker": "SPEAKER_UNKNOWN",
+      "start": 97.155,
+      "end": 101.977,
+      "text": "But actually I am very, very impressed by how well it works.",
+      "words": [
+        {
+          "word": "But",
+          "start": 97.155,
+          "end": 97.315,
+          "score": 0.45
+        },
+        {
+          "word": "actually",
+          "start": 97.335,
+          "end": 97.975,
+          "score": 0.504
+        },
+        {
+          "word": "I",
+          "start": 97.995,
+          "end": 98.015,
+          "score": 0.0
+        },
+        {
+          "word": "am",
+          "start": 98.995,
+          "end": 99.136,
+          "score": 0.666
+        },
+        {
+          "word": "very,",
+          "start": 99.496,
+          "end": 99.736,
+          "score": 0.652
+        },
+        {
+          "word": "very",
+          "start": 99.756,
+          "end": 99.876,
+          "score": 0.382
+        },
+        {
+          "word": "impressed",
+          "start": 99.896,
+          "end": 100.296,
+          "score": 0.463
+        },
+        {
+          "word": "by",
+          "start": 100.336,
+          "end": 100.476,
+          "score": 0.499
+        },
+        {
+          "word": "how",
+          "start": 100.516,
+          "end": 100.636,
+          "score": 0.487
+        },
+        {
+          "word": "well",
+          "start": 100.656,
+          "end": 100.856,
+          "score": 0.396
+        },
+        {
+          "word": "it",
+          "start": 100.956,
+          "end": 101.256,
+          "score": 0.732
+        },
+        {
+          "word": "works.",
+          "start": 101.717,
+          "end": 101.977,
+          "score": 0.652
+        }
+      ]
+    },
+    {
+      "speaker": "SPEAKER_UNKNOWN",
+      "start": 102.077,
+      "end": 115.863,
+      "text": "So here is an additional confirmation that most likely for the next five years there will be almost no developers as a profession but there will be some work on computers.",
+      "words": [
+        {
+          "word": "So",
+          "start": 102.077,
+          "end": 102.257,
+          "score": 0.652
+        },
+        {
+          "word": "here",
+          "start": 102.297,
+          "end": 102.477,
+          "score": 0.415
+        },
+        {
+          "word": "is",
+          "start": 102.517,
+          "end": 102.617,
+          "score": 0.38
+        },
+        {
+          "word": "an",
+          "start": 102.637,
+          "end": 102.857,
+          "score": 0.393
+        },
+        {
+          "word": "additional",
+          "start": 104.038,
+          "end": 104.878,
+          "score": 0.638
+        },
+        {
+          "word": "confirmation",
+          "start": 104.918,
+          "end": 105.538,
+          "score": 0.406
+        },
+        {
+          "word": "that",
+          "start": 105.578,
+          "end": 105.698,
+          "score": 0.286
+        },
+        {
+          "word": "most",
+          "start": 105.758,
+          "end": 105.939,
+          "score": 0.446
+        },
+        {
+          "word": "likely",
+          "start": 105.959,
+          "end": 106.519,
+          "score": 0.63
+        },
+        {
+          "word": "for",
+          "start": 106.539,
+          "end": 106.679,
+          "score": 0.685
+        },
+        {
+          "word": "the",
+          "start": 106.719,
+          "end": 107.039,
+          "score": 0.531
+        },
+        {
+          "word": "next",
+          "start": 107.079,
+          "end": 107.199,
+          "score": 0.436
+        },
+        {
+          "word": "five",
+          "start": 107.219,
+          "end": 107.779,
+          "score": 0.628
+        },
+        {
+          "word": "years",
+          "start": 107.939,
+          "end": 108.6,
+          "score": 0.602
+        },
+        {
+          "word": "there",
+          "start": 108.96,
+          "end": 109.06,
+          "score": 0.128
+        },
+        {
+          "word": "will",
+          "start": 109.08,
+          "end": 109.26,
+          "score": 0.612
+        },
+        {
+          "word": "be",
+          "start": 109.38,
+          "end": 109.58,
+          "score": 0.382
+        },
+        {
+          "word": "almost",
+          "start": 109.64,
+          "end": 110.561,
+          "score": 0.658
+        },
+        {
+          "word": "no",
+          "start": 110.601,
+          "end": 110.841,
+          "score": 0.816
+        },
+        {
+          "word": "developers",
+          "start": 111.281,
+          "end": 111.841,
+          "score": 0.533
+        },
+        {
+          "word": "as",
+          "start": 112.081,
+          "end": 112.421,
+          "score": 0.794
+        },
+        {
+          "word": "a",
+          "start": 112.762,
+          "end": 113.222,
+          "score": 0.801
+        },
+        {
+          "word": "profession",
+          "start": 113.282,
+          "end": 113.762,
+          "score": 0.557
+        },
+        {
+          "word": "but",
+          "start": 114.082,
+          "end": 114.162,
+          "score": 0.16
+        },
+        {
+          "word": "there",
+          "start": 114.182,
+          "end": 114.382,
+          "score": 0.404
+        },
+        {
+          "word": "will",
+          "start": 114.422,
+          "end": 114.562,
+          "score": 0.408
+        },
+        {
+          "word": "be",
+          "start": 114.582,
+          "end": 114.642,
+          "score": 0.3
+        },
+        {
+          "word": "some",
+          "start": 114.662,
+          "end": 114.922,
+          "score": 0.58
+        },
+        {
+          "word": "work",
+          "start": 115.043,
+          "end": 115.163,
+          "score": 0.26
+        },
+        {
+          "word": "on",
+          "start": 115.223,
+          "end": 115.403,
+          "score": 0.549
+        },
+        {
+          "word": "computers.",
+          "start": 115.463,
+          "end": 115.863,
+          "score": 0.538
+        }
+      ]
+    }
+  ]
+}
