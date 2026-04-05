@@ -1,0 +1,9 @@
+whisperx==3.8.2
+python-dotenv
+torch==2.8.0
+torchaudio==2.8.0
+torchvision==0.23.0
+torchcodec==0.7.0
+huggingface_hub
+hydra-core
+gradio>=5.0.0
