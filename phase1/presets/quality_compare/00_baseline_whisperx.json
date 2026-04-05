@@ -1,0 +1,21 @@
+{
+  "id": "baseline_whisperx_10min",
+  "description": "10-minute WhisperX baseline on the Russian meeting with stable device settings.",
+  "pipeline": {
+    "language": "ru",
+    "duration_limit": 600,
+    "parallel_post_asr": false,
+    "content_mode": "single-speaker",
+    "skip_diarization": true
+  },
+  "backend": {
+    "id": "whisperx",
+    "options": {
+      "device": "cpu",
+      "alignment_device": "cpu",
+      "diarization_device": "cpu",
+      "threads": 5,
+      "batch_size": 4
+    }
+  }
+}

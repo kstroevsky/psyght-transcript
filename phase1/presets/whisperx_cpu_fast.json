@@ -1,0 +1,18 @@
+{
+  "id": "whisperx_cpu_fast",
+  "description": "CPU-oriented WhisperX preset for faster compare-mode experiments.",
+  "pipeline": {
+    "parallel_post_asr": false
+  },
+  "backend": {
+    "id": "whisperx",
+    "options": {
+      "device": "cpu",
+      "alignment_device": "cpu",
+      "diarization_device": "cpu",
+      "batch_size": 2,
+      "vad_method": "silero",
+      "vad_chunk_size": 10
+    }
+  }
+}

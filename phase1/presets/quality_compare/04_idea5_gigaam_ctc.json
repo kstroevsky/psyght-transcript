@@ -1,0 +1,22 @@
+{
+  "id": "idea5_gigaam_ctc_10min",
+  "description": "Idea 5: swap WhisperX ASR for Russian GigaAM-v3 e2e CTC while keeping alignment and diarization.",
+  "pipeline": {
+    "language": "ru",
+    "duration_limit": 600,
+    "parallel_post_asr": false,
+    "content_mode": "single-speaker",
+    "skip_diarization": true
+  },
+  "backend": {
+    "id": "gigaam_ctc",
+    "options": {
+      "device": "cpu",
+      "alignment_device": "cpu",
+      "diarization_device": "cpu",
+      "model_name": "ai-sage/GigaAM-v3",
+      "revision": "e2e_ctc",
+      "chunk_duration_sec": 20.0
+    }
+  }
+}

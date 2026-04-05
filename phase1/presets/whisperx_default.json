@@ -1,0 +1,11 @@
+{
+  "id": "whisperx_default",
+  "description": "Default WhisperX pipeline with current environment-driven settings.",
+  "pipeline": {
+    "parallel_post_asr": true
+  },
+  "backend": {
+    "id": "whisperx",
+    "options": {}
+  }
+}

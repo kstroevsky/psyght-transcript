@@ -1,0 +1,44 @@
+{
+  "id": "combo_whisperx_123_10min",
+  "description": "Combined best-effort preset: idea 1 decoding guardrails, idea 2 denoise/VAD, and idea 3 diarization cleanup.",
+  "pipeline": {
+    "language": "ru",
+    "duration_limit": 600,
+    "parallel_post_asr": true,
+    "min_speakers": 2,
+    "max_speakers": 2
+  },
+  "backend": {
+    "id": "whisperx",
+    "options": {
+      "device": "cpu",
+      "alignment_device": "cpu",
+      "diarization_device": "cpu",
+      "threads": 5,
+      "batch_size": 4,
+      "vad_method": "silero",
+      "vad_chunk_size": 20,
+      "vad_options": {
+        "min_silence_duration_ms": 250,
+        "speech_pad_ms": 80
+      },
+      "audio_preprocessing": [
+        {
+          "id": "deepfilternet"
+        }
+      ],
+      "merge_consecutive_speakers": true,
+      "speaker_merge_gap_sec": 0.45,
+      "asr_options": {
+        "beam_size": 5,
+        "temperature": 0.0,
+        "compression_ratio_threshold": 1.8,
+        "log_prob_threshold": -0.5,
+        "no_speech_threshold": 0.4,
+        "condition_on_previous_text": false,
+        "word_timestamps": true,
+        "hallucination_silence_threshold": 0.2
+      }
+    }
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "id": "idea3_diarization_cleanup_10min",
+  "description": "Idea 3: constrain speaker count to two speakers and merge consecutive same-speaker fragments.",
+  "pipeline": {
+    "language": "ru",
+    "duration_limit": 600,
+    "parallel_post_asr": true,
+    "min_speakers": 2,
+    "max_speakers": 2
+  },
+  "backend": {
+    "id": "whisperx",
+    "options": {
+      "device": "cpu",
+      "alignment_device": "cpu",
+      "diarization_device": "cpu",
+      "threads": 5,
+      "batch_size": 4,
+      "merge_consecutive_speakers": true,
+      "speaker_merge_gap_sec": 0.45
+    }
+  }
+}

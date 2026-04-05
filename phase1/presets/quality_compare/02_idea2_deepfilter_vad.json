@@ -1,0 +1,32 @@
+{
+  "id": "idea2_deepfilter_vad_10min",
+  "description": "Idea 2: DeepFilterNet denoising before ASR plus more aggressive Silero pause splitting.",
+  "pipeline": {
+    "language": "ru",
+    "duration_limit": 600,
+    "parallel_post_asr": false,
+    "content_mode": "single-speaker",
+    "skip_diarization": true
+  },
+  "backend": {
+    "id": "whisperx",
+    "options": {
+      "device": "cpu",
+      "alignment_device": "cpu",
+      "diarization_device": "cpu",
+      "threads": 5,
+      "batch_size": 4,
+      "vad_method": "silero",
+      "vad_chunk_size": 20,
+      "vad_options": {
+        "min_silence_duration_ms": 250,
+        "speech_pad_ms": 80
+      },
+      "audio_preprocessing": [
+        {
+          "id": "deepfilternet"
+        }
+      ]
+    }
+  }
+}
