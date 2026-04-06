@@ -73,10 +73,15 @@ PostgreSQL 17 + ParadeDB
 ---
 
 ## Current Status
+- Canary-first `therapy_hybrid` landed on 2026-04-06:
+  - live or artifact Canary is now the canonical transcript structure and base text for therapy runs; CTC remains the lexical truth anchor and Whisper is retained only as an auxiliary post-guard signal
+  - the local Qwen merge prompt and deterministic fallback now preserve Canary by default and only apply conservative CTC-guided corrections instead of using the previous Whisper-primary merge behavior
+  - the runtime still records `01f_therapy_eclm_debug.json`, but Step 5B is intentionally skipped in the Canary-first path until the ECLM model is retrained for the new inputs
+  - next recommended step is to run the revised therapy pipeline on a representative long Russian session and review `01e_therapy_merge_debug.json` for real correction quality and duplicate-window cleanup
 - Standalone Qwen3-ASR backend/workbench removal landed on 2026-04-06:
   - removed the dedicated `qwen_asr` backend, helper-env bootstrap, fine-tuning/UI tooling, download hooks, and focused tests
   - `phase1/transcribe.py` and `phase1/download_models.py` no longer expose standalone Qwen-ASR flags or bootstrap actions
-  - next recommended step is to make `therapy_hybrid` Canary-first, with Canary as the canonical segment structure and CTC-guided Qwen correction over those Canary windows
+  - the standalone Qwen-ASR path is no longer part of the supported operator surface; only the local text Qwen merge used inside `therapy_hybrid` remains
 - Initial history cleanup landed on 2026-04-05:
   - the repo now has a curated commit history instead of one mixed uncommitted snapshot
   - dead internal modules `phase1/compare_runtime/metrics.py`, `phase1/output/schema.py`, `phase1/therapy/interfaces.py`, and `phase2/db/search.py` were removed
@@ -362,11 +367,12 @@ PostgreSQL 17 + ParadeDB
 - Therapy backend constraint:
   - the live therapy WhisperX path now uses `bzikst/faster-whisper-large-v3-russian` as the host-validated CTranslate2 runtime for Russian therapy work; the previously selected Russian CT2 runtime is no longer used on this host because it still emitted English under explicit `language=ru` / `task=transcribe` smoke tests
   - the live therapy Canary helper must forward explicit `source_lang` / `target_lang` / `taskname` prompt kwargs and chunk long audio into 30-second windows before reassembling global timestamps; helper metadata is the source of truth for the effective prompt actually used
+  - `therapy_hybrid` is now Canary-first: live or artifact Canary must provide the canonical segment windows and base text, while CTC is the lexical truth anchor and Whisper is only an auxiliary post-guard signal
   - when `therapy_hybrid` runs with diarization enabled and no explicit speaker-count override, the effective diarization hints must be `min_speakers=2` and `max_speakers=2`
   - on Apple Silicon, pyannote diarization should prefer `mps` when available; the generic backend `device` override should also flow into diarization unless `diarization_device` is set explicitly
   - diarization artifacts must be JSON-safe; pyannote `segment` objects should never leak into `03_diarization_segments.json`
-  - the current Step 5A merge path assumes a local Ollama-served Qwen model or falls back to a deterministic CTC-first merge; live Canary is now implemented, but the no-Ollama fallback is intentionally conservative rather than fluent
-  - the current Step 5B runtime uses a partially fine-tuned `google/mt5-large` checkpoint and is intentionally gated to short high-overlap CTC/Whisper segments; on this host `mt5-large` inference is CPU-only in production because Apple `mps` hits a Metal NDArray size limit during generation
+  - the current Step 5A merge path assumes a local Ollama-served Qwen model or falls back to a deterministic Canary-base merge; no-Ollama behavior is intentionally conservative rather than fluent
+  - the current Step 5B runtime is intentionally disabled in the Canary-first path until the ECLM model is retrained for Canary+CTC inputs; on this host `mt5-large` inference is CPU-only in production because Apple `mps` hits a Metal NDArray size limit during generation
   - the ECLM input format now uses plain textual prefixes (`ctc:` / `whisper:`) instead of angle-bracket sentinel-like tags; the earlier tag style caused T5-family generation to leak `<extra_id_*>`-style garbage into outputs
   - the practical repo-owned ECLM training loop now unfreezes only the last encoder/decoder block plus `lm_head` by default; a full-rank optimizer state for all `mt5-large` weights exceeded local Apple `mps` memory during training
   - the manual Gemini review handoff now assumes the reviewed artifact is the existing chunk JSON template under `review_templates/`, not raw Gemini free-form text; one `wait-review` session validates exactly one chunk
@@ -387,11 +393,9 @@ PostgreSQL 17 + ParadeDB
 | 6 | Hardening: retries, parallel workers, Bull Board UI, integration tests | Not started |
 
 ## Next Recommended Step
-- Rework `therapy_hybrid` so Canary defines the canonical segment structure and base text, then use the local Qwen merge stage to apply conservative CTC-guided corrections within those Canary windows while keeping Whisper as an auxiliary signal only.
-- Fix duplicate / overlapping segment cleanup in the therapy path using the completed recovered 10-minute Russian run under `phase1/runs/therapy_live_ru_10min_recovered_mps_20260323/` as the regression fixture; language leakage in the final export is no longer the main blocker.
-- Collect the first 5 reviewed 10-minute therapy chunks, build the JSONL with `phase1/tools/therapy_finetune.py build-jsonl`, and run the first `google/mt5-large` fine-tune to replace the prototype Qwen merge path with a measured ECLM baseline.
-- Run the new `therapy_hybrid` preset on at least one long corrected Russian therapy recording and compare `merged` vs `ctc_fallback` segment counts before promoting it beyond the additive tool/preset path.
-- Compare the live Qwen merge path from the Dockerized Ollama bootstrap against the current deterministic CTC-first fallback on the same corrected Russian therapy slices.
+- Run the revised Canary-first `therapy_hybrid` preset on at least one long corrected Russian therapy recording and inspect `01e_therapy_merge_debug.json` for duplicate-window cleanup plus real CTC-guided meaning corrections over Canary base text.
+- If the Canary-first merge looks stable, collect the first 5 reviewed 10-minute therapy chunks and decide whether the next ECLM iteration should be retrained on Canary+CTC inputs before re-enabling Step 5B at runtime.
+- Compare the live Qwen merge path from the Dockerized Ollama bootstrap against the current deterministic Canary-base fallback on the same corrected Russian therapy slices.
 - If new compare or tuning heuristics are needed, add them as additional `phase1/quality/*` checks instead of embedding more scoring logic into `compare_runtime` or tuning orchestration.
 - Run the new tuner against at least one corrected long Russian meeting transcript and promote beam only if a tuned candidate beats both greedy and `beam_no_lm` on WER/CER.
 - Rebuild the spoken-mix RU LM without `--max-pages` once more conversational transcripts are available, then retune against the same held-out manifest before considering any runtime default change.

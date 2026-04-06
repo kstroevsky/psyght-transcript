@@ -66,12 +66,11 @@ cd /Users/kstroevsky/Desktop/dev/psyght-decoder
 phase1/venv/bin/python phase1/transcribe.py /absolute/path/session.mp3 \
   --backend therapy_hybrid \
   --lang ru \
-  --use-live-canary \
   --min-speakers 2 \
   --max-speakers 2
 ```
 
-If Ollama is not running locally, the therapy merge stage falls back to a deterministic CTC-first merge instead of failing the run.
+If Ollama is not running locally, the therapy merge stage falls back to a deterministic Canary-base merge instead of failing the run.
 
 Dockerized Qwen bootstrap:
 ```bash
@@ -109,16 +108,17 @@ cd /Users/kstroevsky/Desktop/dev/psyght-decoder
 phase1/venv/bin/python phase1/transcribe.py /absolute/path/session.mp3 \
   --backend therapy_hybrid \
   --lang ru \
-  --use-live-canary \
   --output-dir /absolute/path/out/therapy_run \
   --save-intermediate-dir /absolute/path/out/therapy_run
 ```
 
 Therapy pipeline notes:
-- The additive `therapy_hybrid` backend runs WhisperX VAD transcription, parallel GigaAM CTC anchoring, a timestamp-entropy hallucination guard, and a Qwen/Ollama merge stage.
+- The additive `therapy_hybrid` backend now treats Canary as the canonical transcript structure and base text; parallel GigaAM CTC remains the truth anchor for lexical corrections, and WhisperX is retained only as an auxiliary signal after the timestamp-entropy hallucination guard sanitizes it.
+- Live Canary is the default for `therapy_hybrid`; use `--canary-json` when you want to pin the run to a precomputed Canary artifact instead.
 - `phase1/tools/run_therapy_pipeline.py` remains available as a thin convenience wrapper, but `phase1/transcribe.py --backend therapy_hybrid ...` is the primary entrypoint.
 - Its speaker merge path switches to `whisperx.assign_word_speakers` and normalizes diarized speakers to `A`, `B`, ... for the final structured output.
-- Additive artifacts now include `01a_therapy_whisper_segments.json`, `01b_therapy_ctc_segments.json`, `01c_therapy_canary_segments.json`, `01d_therapy_hallucination_segments.json`, and `01e_therapy_merge_debug.json`.
+- Additive artifacts now include raw Whisper in `01a_therapy_whisper_segments.json`, CTC anchors in `01b_therapy_ctc_segments.json`, Canary primary segments in `01c_therapy_canary_segments.json`, guarded Whisper auxiliary segments in `01d_therapy_hallucination_segments.json`, and merge decisions in `01e_therapy_merge_debug.json`.
+- The ECLM fine-tuning toolchain remains available, but the Canary-first runtime currently reports Step 5B as intentionally skipped until that model is retrained for the new inputs.
 - Structured transcript JSON can now optionally include per-word `speaker` plus per-segment `confidence` and `source` fields without breaking existing consumers.
 
 ## Therapy fine-tuning

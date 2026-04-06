@@ -55,6 +55,9 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main() -> None:
     args = build_parser().parse_args()
+    if args.disable_live_canary and not args.canary_json:
+        raise ValueError("therapy_hybrid requires Canary input; pass --canary-json or keep live Canary enabled.")
+
     input_path = Path(args.audio).expanduser().resolve()
     run_root = (
         Path(args.output_dir).expanduser().resolve()

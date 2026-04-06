@@ -27,7 +27,7 @@ PostgreSQL 17 + ParadeDB
 ## Internal boundaries
 - `phase1/backends/*` owns pluggable transcription backend adapters. Implemented backends today are `whisperx`, `gigaam_ctc`, `canary`, and `therapy_hybrid`.
 - `phase1/pipeline/*` owns stage wrappers for audio loading, diarization, and backend-independent speaker assignment.
-- `phase1/therapy/*` owns the additive Russian therapy pipeline: WhisperX VAD transcription, CTC anchoring, live/artifact Canary input, hallucination fallback, Qwen merge, and ECLM data-prep helpers.
+- `phase1/therapy/*` owns the additive Russian therapy pipeline: Canary-first transcript structure, CTC anchoring, Whisper guardrails, Qwen merge, and ECLM data-prep helpers.
 - `phase1/runtime/*` owns single-run orchestration, progress state, artifact persistence, and synthetic single-speaker handling.
 - `phase1/quality/*` owns the quality meta-layer: independent quality checks, report assembly, and ranking shared by compare mode and decoder tuning.
 - `phase1/compare_runtime/*` owns preset loading plus compare experiment orchestration only; it consumes `runtime/*` and `quality/*` but does not own scoring logic.

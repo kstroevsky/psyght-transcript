@@ -5,7 +5,7 @@ from __future__ import annotations
 import unittest
 
 from phase1.therapy.models import MergeDecision
-from phase1.therapy.pipeline import TherapyHybridTranscriber, resolve_therapy_backend_options, validate_primary_segments
+from phase1.therapy.pipeline import TherapyHybridTranscriber, resolve_therapy_backend_options, validate_canary_segments
 
 
 class _StaticStage:
@@ -36,25 +36,15 @@ class _PassthroughResolver:
 
 class _StaticMerger:
     def merge(self, request):
-        return MergeDecision(text=f"{request.ctc_text} || {request.whisper_text}".strip(" |"))
+        return MergeDecision(
+            text=" || ".join(part for part in (request.canary_text, request.ctc_text, request.whisper_text) if part)
+        )
 
 
 class _DropMerger:
     def merge(self, request):
         del request
         return MergeDecision(text="", confidence="low", notes=("language_script_guard_drop",))
-
-
-class _StaticCorrector:
-    def __init__(self, text):
-        self._text = text
-
-    def correct(self, request):
-        del request
-        return MergeDecision(text=self._text, source="eclm")
-
-    def runtime_summary(self):
-        return {"provider": "mt5", "device": "cpu"}
 
 
 class TherapyPipelineTest(unittest.TestCase):
@@ -70,6 +60,7 @@ class TherapyPipelineTest(unittest.TestCase):
         self.assertEqual("bzikst/faster-whisper-large-v3-russian", resolved["whisper"]["model_name"])
         self.assertEqual("beam", resolved["ctc"]["decoder"]["strategy"])
         self.assertEqual(32, resolved["ctc"]["decoder"]["beam_width"])
+        self.assertEqual("backend", resolved["canary"]["provider"])
 
     def test_resolve_therapy_backend_options_prefers_artifact_canary_over_live_backend(self) -> None:
         resolved = resolve_therapy_backend_options(
@@ -82,80 +73,56 @@ class TherapyPipelineTest(unittest.TestCase):
         self.assertEqual("artifact", resolved["canary"]["provider"])
         self.assertEqual("/tmp/canary.json", resolved["canary"]["artifact_path"])
 
-    def test_validate_primary_segments_rejects_latin_only_forced_ru_output(self) -> None:
-        validation = validate_primary_segments(
+    def test_validate_canary_segments_rejects_latin_only_forced_ru_output(self) -> None:
+        validation = validate_canary_segments(
             [{"start": 0.0, "end": 1.0, "text": "hello there", "words": [{"word": "hello"}]}],
             language="ru",
         )
 
         self.assertFalse(validation["accepted"])
-        self.assertEqual("ctc_primary_replacement", validation["runtime_decision"])
+        self.assertEqual("accepted_with_warnings", validation["runtime_decision"])
         self.assertIn("latin_only_transcript", validation["fallback_reason"])
 
-    def test_transcriber_emits_merge_debug_and_keeps_ctc_fallback_segments(self) -> None:
+    def test_transcriber_uses_canary_segments_as_final_windows_and_guarded_whisper_as_aux(self) -> None:
         transcriber = self._transcriber()
-        whisper_segments = [{"start": 0.0, "end": 1.0, "text": "whisper one"}]
+        whisper_segments = [{"start": 0.0, "end": 1.0, "text": "raw whisper"}]
         ctc_segments = [{"start": 0.0, "end": 1.0, "text": "ctc one"}]
         canary_segments = [{"start": 0.0, "end": 1.0, "text": "canary one"}]
-        guarded_segments = [
-            {"start": 0.0, "end": 1.0, "text": "anchor only", "source": "ctc_fallback", "confidence": "low"},
-            {"start": 1.0, "end": 2.0, "text": "whisper two"},
-        ]
-        transcriber._primary_stage = _StaticStage(whisper_segments, {"detected_language": "ru", "asr": {"device": "cpu"}})
-        transcriber._ctc_stage = _StaticStage(
-            ctc_segments + [{"start": 1.0, "end": 2.0, "text": "ctc two"}],
-            {"detected_language": "ru", "asr": {"device": "cpu"}},
-        )
-        transcriber._canary_stage = _StaticStage(canary_segments + [{"start": 1.0, "end": 2.0, "text": "canary two"}], {})
+        guarded_segments = [{"start": 0.0, "end": 1.0, "text": "guarded whisper", "source": "ctc_fallback", "confidence": "low"}]
+        transcriber._whisper_stage = _StaticStage(whisper_segments, {"detected_language": "ru", "asr": {"device": "cpu"}})
+        transcriber._ctc_stage = _StaticStage(ctc_segments, {"detected_language": "ru", "asr": {"device": "cpu"}})
+        transcriber._canary_stage = _StaticStage(canary_segments, {"detected_language": "ru"})
         transcriber._hallucination_resolver = _StaticResolver(guarded_segments, {"flagged_segment_count": 1})
         transcriber._merger = _StaticMerger()
 
         segments, meta = transcriber.run(audio=[], language="ru")
 
-        self.assertEqual("anchor only", segments[0]["text"])
-        self.assertEqual("ctc two || whisper two", segments[1]["text"])
-        self.assertEqual("ctc_fallback", segments[0]["source"])
-        self.assertEqual("merged", segments[1]["source"])
+        self.assertEqual("canary one || ctc one || guarded whisper", segments[0]["text"])
+        self.assertEqual("merged", segments[0]["source"])
         self.assertIn("01e_therapy_merge_debug.json", meta["artifact_payloads"])
-        self.assertEqual(2, len(meta["artifact_payloads"]["01e_therapy_merge_debug.json"]))
+        self.assertEqual("guarded whisper", meta["artifact_payloads"]["01d_therapy_hallucination_segments.json"][0]["text"])
+        self.assertEqual("canary one", meta["artifact_payloads"]["01e_therapy_merge_debug.json"][0]["canary_base_text"])
         self.assertIn("01f_therapy_eclm_debug.json", meta["artifact_payloads"])
 
-    def test_transcriber_replaces_invalid_primary_whisper_segments_with_ctc(self) -> None:
+    def test_transcriber_requires_canary_segments(self) -> None:
         transcriber = self._transcriber()
-        whisper_segments = [{"start": 0.0, "end": 1.0, "text": "hello there", "words": [{"word": "hello"}]}]
-        ctc_segments = [{"start": 0.0, "end": 1.0, "text": "привет"}]
-        transcriber._primary_stage = _StaticStage(
-            whisper_segments,
-            {
-                "detected_language": "ru",
-                "asr": {
-                    "device": "cpu",
-                    "model_name": "bzikst/faster-whisper-large-v3-russian",
-                    "task": "transcribe",
-                },
-            },
-        )
-        transcriber._ctc_stage = _StaticStage(
-            ctc_segments,
-            {"detected_language": "ru", "asr": {"device": "cpu"}},
-        )
+        transcriber._whisper_stage = _StaticStage([{"start": 0.0, "end": 1.0, "text": "whisper"}], {"detected_language": "ru", "asr": {"device": "cpu"}})
+        transcriber._ctc_stage = _StaticStage([{"start": 0.0, "end": 1.0, "text": "ctc"}], {"detected_language": "ru", "asr": {"device": "cpu"}})
         transcriber._canary_stage = _StaticStage([], {})
         transcriber._hallucination_resolver = _PassthroughResolver()
 
-        segments, meta = transcriber.run(audio=[], language="ru")
-
-        self.assertEqual("ctc_primary_replacement", meta["whisper_primary_runtime_decision"])
-        self.assertEqual("привет", meta["artifact_payloads"]["01a_therapy_whisper_segments.json"][0]["text"])
-        self.assertEqual("привет", segments[0]["text"])
+        with self.assertRaisesRegex(RuntimeError, "requires a Canary transcript"):
+            transcriber.run(audio=[], language="ru")
 
     def test_transcriber_skips_segments_when_merger_requests_language_guard_drop(self) -> None:
         transcriber = self._transcriber()
         whisper_segments = [{"start": 0.0, "end": 1.0, "text": "english stray"}]
         ctc_segments = [{"start": 0.0, "end": 1.0, "text": ""}]
+        canary_segments = [{"start": 0.0, "end": 1.0, "text": "canary stray"}]
         guarded_segments = [{"start": 0.0, "end": 1.0, "text": "english stray"}]
-        transcriber._primary_stage = _StaticStage(whisper_segments, {"detected_language": "ru", "asr": {"device": "cpu"}})
+        transcriber._whisper_stage = _StaticStage(whisper_segments, {"detected_language": "ru", "asr": {"device": "cpu"}})
         transcriber._ctc_stage = _StaticStage(ctc_segments, {"detected_language": "ru", "asr": {"device": "cpu"}})
-        transcriber._canary_stage = _StaticStage([], {})
+        transcriber._canary_stage = _StaticStage(canary_segments, {})
         transcriber._hallucination_resolver = _StaticResolver(guarded_segments, {"flagged_segment_count": 0})
         transcriber._merger = _DropMerger()
 
@@ -164,21 +131,23 @@ class TherapyPipelineTest(unittest.TestCase):
         self.assertEqual([], segments)
         self.assertEqual([], meta["artifact_payloads"]["01e_therapy_merge_debug.json"])
 
-    def test_transcriber_prefers_valid_eclm_output_over_merge_candidate(self) -> None:
-        transcriber = self._transcriber()
+    def test_transcriber_reports_eclm_runtime_disabled_even_when_requested(self) -> None:
+        transcriber = TherapyHybridTranscriber({"merge_provider": {"id": "rule_based"}, "eclm": {"enabled": True, "model_path": "/tmp/eclm"}})
         whisper_segments = [{"start": 0.0, "end": 1.0, "text": "да теперь все будет хорошо"}]
         ctc_segments = [{"start": 0.0, "end": 1.0, "text": "да теперь всё будет хорошо"}]
-        transcriber._primary_stage = _StaticStage(whisper_segments, {"detected_language": "ru", "asr": {"device": "cpu"}})
+        canary_segments = [{"start": 0.0, "end": 1.0, "text": "да теперь все будет хорошо"}]
+        transcriber._whisper_stage = _StaticStage(whisper_segments, {"detected_language": "ru", "asr": {"device": "cpu"}})
         transcriber._ctc_stage = _StaticStage(ctc_segments, {"detected_language": "ru", "asr": {"device": "cpu"}})
-        transcriber._canary_stage = _StaticStage([], {})
+        transcriber._canary_stage = _StaticStage(canary_segments, {"detected_language": "ru"})
         transcriber._hallucination_resolver = _PassthroughResolver()
-        transcriber._corrector = _StaticCorrector("да теперь всё будет хорошо")
 
         segments, meta = transcriber.run(audio=[], language="ru")
 
-        self.assertEqual("да теперь всё будет хорошо", segments[0]["text"])
-        self.assertEqual("eclm", segments[0]["source"])
-        self.assertTrue(meta["artifact_payloads"]["01f_therapy_eclm_debug.json"][0]["accepted"])
+        self.assertEqual("да теперь все будет хорошо", segments[0]["text"])
+        self.assertTrue(meta["eclm"]["requested_enabled"])
+        self.assertFalse(meta["eclm"]["enabled"])
+        self.assertEqual("disabled_in_canary_primary_runtime", meta["eclm"]["skip_reason"])
+        self.assertEqual([], meta["artifact_payloads"]["01f_therapy_eclm_debug.json"])
 
 
 if __name__ == "__main__":

@@ -1,6 +1,6 @@
 {
   "id": "therapy_hybrid_ru",
-  "description": "Russian therapy pipeline with WhisperX VAD, CTC anchor, timestamp guard, and Qwen merge.",
+  "description": "Russian therapy pipeline with Canary-first transcript structure, CTC anchoring, Whisper guardrails, and Qwen merge.",
   "pipeline": {
     "language": "ru",
     "min_speakers": 2,

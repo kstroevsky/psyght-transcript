@@ -9,7 +9,7 @@ from phase1.therapy.pipeline import TherapyHybridTranscriber, resolve_therapy_ba
 
 
 class TherapyHybridBackend:
-    """WhisperX VAD + CTC anchor + hallucination guard + LLM merge."""
+    """Canary-first therapy backend with CTC-guided merge corrections."""
 
     backend_id = "therapy_hybrid"
 
