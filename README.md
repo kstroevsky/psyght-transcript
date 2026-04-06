@@ -19,7 +19,6 @@ Private, self-hosted meeting transcription and search service for a NestJS backe
 Primary operator entrypoints:
 - `phase1/download_models.py` for one-time model/helper bootstrap
 - `phase1/tools/setup_ollama_qwen.py` for one-shot Dockerized Ollama + `qwen3:8b` bootstrap
-- `phase1/tools/qwen_asr_finetune.py` for Qwen3-ASR bootstrap, dataset prep, supervised fine-tuning, manual UI, and Qwen-backed pipeline runs
 - `phase1/transcribe.py` for any single-run transcription backend, including `canary` and `therapy_hybrid`
 - `phase1/compare.py` for backend-to-backend compare runs without preset JSON files
 - `phase1/tools/therapy_finetune.py` for review-bundle prep, blocking Gemini review intake, JSONL generation, and ECLM training
@@ -44,8 +43,6 @@ Phase1 notes:
 - Packaged CTC LMs can be fetched with `python phase1/tools/fetch_ctc_lm_assets.py --lang uk` for `Yehor/kenlm-uk` and `--lang en` for NVIDIA Riva English (`ngc` CLI + auth required).
 - When `--lang` is explicitly non-Russian (`uk`/`en`), the default backend falls back to WhisperX automatically for ASR/alignment compatibility.
 - Keep the pinned `torch` / `torchaudio` / `torchvision` / `torchcodec` versions from `phase1/requirements.txt` together on Apple Silicon.
-- Qwen3-ASR supervised fine-tuning and inference live behind an isolated helper env at `phase1/.qwen-asr-venv`; use `phase1/tools/qwen_asr_finetune.py bootstrap` to install the helper and download repo-local Qwen model assets in one step.
-- The same Qwen workbench also exposes `train`, `run-pipeline`, and `launch-ui`, so you do not need to compose low-level helper commands manually.
 - `--duration-limit` now clips diarization as well as ASR/alignment.
 - Requested ASR `mps` is downgraded to CPU automatically on Apple Silicon; alignment and diarization use best-effort MPS with CPU fallback when runtime checks fail.
 - `00_run_meta.json` records resolved stage devices, ASR thread count, VAD settings, duration-limit diagnostics, and fallback reasons.
@@ -80,17 +77,6 @@ Dockerized Qwen bootstrap:
 ```bash
 cd /Users/kstroevsky/Desktop/dev/psyght-decoder
 phase1/venv/bin/python phase1/tools/setup_ollama_qwen.py
-```
-
-Qwen3-ASR backend run:
-```bash
-cd /Users/kstroevsky/Desktop/dev/psyght-decoder
-phase1/venv/bin/python phase1/transcribe.py /absolute/path/meeting.mp3 \
-  --backend qwen_asr \
-  --lang ru \
-  --qwen-model-path /absolute/path/phase1/models/qwen_asr/Qwen__Qwen3-ASR-1.7B \
-  --qwen-forced-aligner-path /absolute/path/phase1/models/qwen_asr/Qwen__Qwen3-ForcedAligner-0.6B \
-  --max-speakers 4
 ```
 
 ## Phase 1 compare mode
@@ -154,35 +140,6 @@ Fine-tuning notes:
 - `wait-review` selects one incomplete chunk template, prints the exact JSON path and audio chunk path, then blocks until that same template file is filled with a valid non-empty `segments` list and you press Enter.
 - `build-jsonl` converts reviewed transcripts plus Whisper/CTC artifacts into 30-second JSONL pairs in the format `<ctc> ... <whisper> ... -> clean`.
 - `train-eclm` fine-tunes `google/mt5-large` with `transformers` `Seq2SeqTrainer` using the requested batch-size / epoch / learning-rate defaults unless overridden.
-
-## Qwen3-ASR fine-tuning
-```bash
-cd /Users/kstroevsky/Desktop/dev/psyght-decoder
-phase1/venv/bin/python phase1/tools/qwen_asr_finetune.py bootstrap
-phase1/venv/bin/python phase1/tools/qwen_asr_finetune.py normalize-transcript \
-  --transcript /absolute/path/gemini_or_review.json \
-  --output /absolute/path/qwen_asr_dataset/transcript.normalized.json
-phase1/venv/bin/python phase1/tools/qwen_asr_finetune.py build-jsonl \
-  /absolute/path/session.wav \
-  --transcript /absolute/path/qwen_asr_dataset/transcript.normalized.json \
-  --output-dir /absolute/path/qwen_asr_dataset \
-  --lang ru \
-  --model-path /absolute/path/phase1/models/qwen_asr/Qwen__Qwen3-ASR-1.7B
-phase1/venv/bin/python phase1/tools/qwen_asr_finetune.py train \
-  --train-file /absolute/path/qwen_asr_dataset/train.jsonl \
-  --eval-file /absolute/path/qwen_asr_dataset/eval.jsonl \
-  --output-dir /absolute/path/qwen_asr_runs/ru_hq_gemini_sft
-```
-
-Qwen3-ASR notes:
-- `bootstrap` is the easy-run entrypoint: it creates `phase1/.qwen-asr-venv`, downloads `Qwen/Qwen3-ASR-1.7B`, and can also pull `Qwen/Qwen3-ForcedAligner-0.6B` into repo-local storage.
-- Repo-local Qwen downloads now use serial Hugging Face snapshot workers by default for reliability; if a large shard still hangs on your host, rerun with `HF_HUB_DISABLE_XET=1`.
-- `normalize-transcript` rewrites supported Gemini/review JSON into canonical `{"segments": [...]}` form with inferred `end_sec` plus warnings about coarse or incomplete timing. This is the safest way to ingest ad hoc HQ transcript files before `build-jsonl`.
-- `build-jsonl` accepts one Gemini JSON transcript or a directory of review-template JSON files, normalizes timestamps, slices local WAV clips, and emits `train.jsonl`, optional `eval.jsonl`, `dataset_manifest.json`, `training_runtime.json`, and `run_qwen3_asr_sft.sh`.
-- Training rows follow the upstream supervised format `language Russian<asr_text>...`, so the generated dataset can be consumed directly by the bundled `train-sft` command.
-- `train` is the main-environment wrapper; it delegates into the isolated helper env and records the resolved training runtime so CUDA, MPS, and CPU hosts choose sane dtypes automatically.
-- `run-pipeline` reuses the normal phase1 runtime with the `qwen_asr` backend, and falls back to WhisperX alignment if you disable or omit the Qwen forced aligner.
-- `launch-ui` starts a local Gradio workbench with tabs for bootstrap, dataset prep, training, and Qwen pipeline runs.
 
 ## Phase 2 quickstart
 ```bash

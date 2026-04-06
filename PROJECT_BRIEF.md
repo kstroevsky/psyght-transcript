@@ -73,25 +73,16 @@ PostgreSQL 17 + ParadeDB
 ---
 
 ## Current Status
+- Standalone Qwen3-ASR backend/workbench removal landed on 2026-04-06:
+  - removed the dedicated `qwen_asr` backend, helper-env bootstrap, fine-tuning/UI tooling, download hooks, and focused tests
+  - `phase1/transcribe.py` and `phase1/download_models.py` no longer expose standalone Qwen-ASR flags or bootstrap actions
+  - next recommended step is to make `therapy_hybrid` Canary-first, with Canary as the canonical segment structure and CTC-guided Qwen correction over those Canary windows
 - Initial history cleanup landed on 2026-04-05:
   - the repo now has a curated commit history instead of one mixed uncommitted snapshot
   - dead internal modules `phase1/compare_runtime/metrics.py`, `phase1/output/schema.py`, `phase1/therapy/interfaces.py`, and `phase2/db/search.py` were removed
   - repo fixtures and operator docs are committed explicitly; ignore rules now target helper envs, local env files, model caches, run artifacts, and review chunks instead of broad `*.json` / `*.txt` patterns
   - removed unneeded local artifacts from the tree: `.DS_Store`, source `__pycache__`, `phase1/test_first2min.webm`, and `2021-03-30_09-39-42_Bogomolov_first_10min_0.txt`
   - next recommended step is to keep future runtime-generated assets out of git by extending the explicit path-based ignore policy rather than reintroducing broad extension ignores
-- Qwen3-ASR proof fine-tune + held-out Bogomolov compare ran on 2026-04-04:
-  - `phase1/tools/qwen_asr_finetune.py build-jsonl` turned the normalized first-10-minute Bogomolov review transcript into `31` Qwen SFT examples (`28` train / `3` eval) under `phase1/runs/qwen_asr_bogomolov_093942_dataset_20260404_151659/`
-  - `phase1/qwen_asr/finetune.py` now forces `TrainingArguments` onto true CPU mode during Apple Silicon fallback (`use_cpu` / `no_cuda`) so resumed Qwen SFT does not still allocate optimizer state on `mps`; the same module now writes `training_runtime.json` through one helper used by both fresh and resumed runs
-  - the proof run produced inferable checkpoints under `phase1/runs/qwen_asr_bogomolov_093942_quick_ft_20260404_151659/` (`checkpoint-1` used for evaluation, resume advanced to `checkpoint-2` before the helper exited non-cleanly)
-  - held-out compare on the first `600` seconds of `/Users/kstroevsky/Downloads/2021-03-30 10.21.41 Zoom Meeting Vladimir Bogomolov.mp4` completed under `phase1/runs/compare_qwen_asr_bogomolov_102141_base_vs_ft_20260404_151659/`; `qwen_ft` ranked first on runtime (`rtf=2.152` vs `2.483`) but the final baseline and fine-tuned transcripts were byte-identical and shared the same proxy score (`0.681874`)
-- Qwen3-ASR workflow hardening landed on 2026-04-02:
-  - `phase1/tools/qwen_asr_finetune.py` is now the stable workbench entrypoint for `bootstrap`, `build-jsonl`, `train`, `run-pipeline`, and `launch-ui`
-  - the same workbench now also exposes `normalize-transcript`, which rewrites supported Gemini/review JSON into canonical `segments` JSON with inferred `end_sec` and operator-facing warnings about coarse timestamps
-  - `phase1/qwen_asr/workflow.py` centralizes helper-env bootstrap, repo-local model download, subprocess orchestration, and easy-run pipeline execution so CLI and UI share the same behavior
-  - `phase1/backends/qwen_asr_backend.py` adds a first-class `qwen_asr` backend to the normal phase1 runtime; inference stays isolated in `phase1/.qwen-asr-venv` via `phase1/tools/qwen_asr_transcribe.py`
-  - `phase1/qwen_asr/ui.py` adds a local Gradio operator UI for manual bootstrap, dataset prep, supervised fine-tuning, and Qwen-backed pipeline runs
-  - repo-local assets were bootstrapped successfully on this host into `phase1/models/qwen_asr/Qwen__Qwen3-ASR-1.7B` (~4.4G) and `phase1/models/qwen_asr/Qwen__Qwen3-ForcedAligner-0.6B` (~1.7G); `HF_HUB_DISABLE_XET=1` was required to avoid a stuck shard transfer during download
-  - focused verification passed in `phase1/venv`: `python -m unittest phase1.tests.test_qwen_asr_finetune phase1.tests.test_qwen_asr_backend phase1.tests.test_qwen_asr_workflow phase1.tests.test_setup_qwen_asr_helper phase1.tests.test_cli` and `python -m py_compile phase1/qwen_asr/finetune.py phase1/qwen_asr/workflow.py phase1/qwen_asr/ui.py phase1/backends/qwen_asr_backend.py phase1/tools/qwen_asr_finetune.py phase1/tools/qwen_asr_transcribe.py phase1/download_models.py phase1/transcribe.py`
 - Fresh phase1 runtime bootstrap was repaired on 2026-03-24:
   - `phase1/requirements.txt` now includes `hydra-core`, which GigaAM trusted remote code requires during `AutoModel.from_pretrained`; without it, a clean `phase1/.venv` failed before CTC startup on the Bogomolov therapy rerun
 - First-10-minute Bogomolov therapy full-stack rerun completed on 2026-03-24 under `phase1/runs/therapy_bogomolov_2021-03-30_10.21.41_first10min_fullstack_rerun2_20260324/`
@@ -313,14 +304,13 @@ PostgreSQL 17 + ParadeDB
   - `--duration-limit` now applies to diarization as well as ASR/alignment
   - compare mode can persist one decoded audio array for reuse across CPU-only parallel presets
 - Phase1 backend boundary:
-  - implemented transcription backends are `whisperx`, `gigaam_ctc`, `canary`, `therapy_hybrid`, and `qwen_asr`
+  - implemented transcription backends are `whisperx`, `gigaam_ctc`, `canary`, and `therapy_hybrid`
   - runtime default backend is now `gigaam_ctc` (`ai-sage/GigaAM-v3`, `revision=e2e_ctc`)
   - Russian `gigaam_ctc` now defaults to greedy decoding; beam search is an explicit decoder setting and is not the runtime default until reference-backed tuning beats greedy
   - the repo-default self-trained Russian KenLM asset is still `phase1/models/ctc_kenlm/ru/ruwiki_plus_4gram/`; external RU KenLMs remain compare/tuning baselines only
   - RU decoder tuning uses WER first, CER second, and realtime factor third when a reference transcript is present
   - explicit `uk`/`en` language requests fall back from default `gigaam_ctc` to WhisperX in backend code
-  - primary phase1 operator entrypoints are `phase1/download_models.py`, `phase1/tools/setup_ollama_qwen.py`, `phase1/tools/qwen_asr_finetune.py`, `phase1/transcribe.py`, `phase1/compare.py`, and `phase1/tools/therapy_finetune.py`
-  - the `qwen_asr` backend keeps heavy inference deps out of the main env by invoking the dedicated helper interpreter and helper script through `phase1/qwen_asr/workflow.py`
+  - primary phase1 operator entrypoints are `phase1/download_models.py`, `phase1/tools/setup_ollama_qwen.py`, `phase1/transcribe.py`, `phase1/compare.py`, and `phase1/tools/therapy_finetune.py`
   - speaker assignment remains local-overlap by default, but backends can now opt into `whisperx.assign_word_speakers` plus speaker-label normalization when needed
   - the additive `therapy_hybrid` backend composes explicit therapy-stage contracts under `phase1/therapy/*` instead of embedding merge/fallback logic in the generic runtime
 - CLI correctness:
@@ -333,7 +323,7 @@ PostgreSQL 17 + ParadeDB
 
 ## Constraints / Invariants
 - `contracts/` is the only allowed cross-phase shared code surface.
-- Primary operator entrypoints must stay explicit and stable: `phase1/download_models.py`, `phase1/tools/setup_ollama_qwen.py`, `phase1/tools/qwen_asr_finetune.py`, `phase1/transcribe.py`, `phase1/compare.py`, `phase1/tools/therapy_finetune.py`, and `phase2/ingest.py`.
+- Primary operator entrypoints must stay explicit and stable: `phase1/download_models.py`, `phase1/tools/setup_ollama_qwen.py`, `phase1/transcribe.py`, `phase1/compare.py`, `phase1/tools/therapy_finetune.py`, and `phase2/ingest.py`.
 - `phase1/compare.py` is additive and must not change the single-run output/progress contract of `phase1/transcribe.py`.
 - `HF_TOKEN` required for first-run model download (pyannote gated models). Not required after.
 - `DATABASE_URL` must be set for all phase2 operations.
@@ -366,12 +356,6 @@ PostgreSQL 17 + ParadeDB
   - the repo-owned Ollama bootstrap is Docker-only; it reuses a named container (`phase1-ollama-qwen`) plus a persistent volume dir under `phase1/.ollama`
   - the intended local Qwen model tag is `qwen3:8b`, aligned with the therapy merge defaults and verified through the Ollama HTTP API after pull
   - therapy merge requests to Ollama must stay non-thinking and token-capped (`think=false`, deterministic options, bounded `num_predict`) on this host; uncapped default `qwen3:8b` requests were observed to stall or time out on CPU
-- Qwen3-ASR fine-tuning constraint:
-  - keep Qwen3-ASR SFT and inference dependencies in the dedicated `phase1/.qwen-asr-venv`; `phase1/tools/setup_qwen_asr_helper.py` should prefer Python 3.12 and must not pull model weights by itself
-  - repo-local Qwen model and forced-aligner downloads should flow through `phase1/qwen_asr/workflow.py` so CLI, UI, and future worker paths resolve the same asset directories; the repo default is serial snapshot workers, and `HF_HUB_DISABLE_XET=1` remains the fallback when Hugging Face Xet transfers stall on this host
-  - the repo-owned Qwen3-ASR dataset builder emits the official upstream SFT label format `language <Name><asr_text>...` and assumes timestamped Gemini transcript input with usable start/end times
-  - Qwen3-ASR checkpoints should stay inferable after each save by copying processor/tokenizer assets alongside `checkpoint-*` directories
-  - when the Qwen forced aligner is unavailable, the `qwen_asr` backend should fall back to the existing WhisperX alignment stage instead of changing downstream transcript contracts
 - HF Whisper antony66 constraint:
   - `antony66/whisper-large-v3-russian` remains unreliable on `mps` on this host even after fixing prompt/timestamp handling; the corrected path is CPU-only for now
   - higher `max_new_tokens` values on the CPU prompt-carryover path can trigger repetition loops, so the tuned runner defaults now intentionally cap generation lower
@@ -403,9 +387,7 @@ PostgreSQL 17 + ParadeDB
 | 6 | Hardening: retries, parallel workers, Bull Board UI, integration tests | Not started |
 
 ## Next Recommended Step
-- Fix the non-clean helper exit that still interrupts resumed Qwen3-ASR SFT after later checkpoints on this host, then rerun the Bogomolov proof fine-tune to a clean `training_runtime.json` and repeat the held-out compare with more than one reviewed chunk so we can test for an actual transcript delta rather than a byte-identical output.
-- Normalize any ad hoc HQ transcript JSON with `phase1/tools/qwen_asr_finetune.py normalize-transcript`, then build the first full Russian Qwen3-ASR dataset bundle with `build-jsonl`, launch the first supervised fine-tune through `train`, and compare it against the current Whisper/GigaAM baselines on held-out Russian meeting slices.
-- Smoke-test the new manual Qwen workbench with `phase1/tools/qwen_asr_finetune.py launch-ui` after the local model/bootstrap download finishes, then decide whether the same workflow should be exposed later through phase3/phase4 operators.
+- Rework `therapy_hybrid` so Canary defines the canonical segment structure and base text, then use the local Qwen merge stage to apply conservative CTC-guided corrections within those Canary windows while keeping Whisper as an auxiliary signal only.
 - Fix duplicate / overlapping segment cleanup in the therapy path using the completed recovered 10-minute Russian run under `phase1/runs/therapy_live_ru_10min_recovered_mps_20260323/` as the regression fixture; language leakage in the final export is no longer the main blocker.
 - Collect the first 5 reviewed 10-minute therapy chunks, build the JSONL with `phase1/tools/therapy_finetune.py build-jsonl`, and run the first `google/mt5-large` fine-tune to replace the prototype Qwen merge path with a measured ECLM baseline.
 - Run the new `therapy_hybrid` preset on at least one long corrected Russian therapy recording and compare `merged` vs `ctc_fallback` segment counts before promoting it beyond the additive tool/preset path.

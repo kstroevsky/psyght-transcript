@@ -5,14 +5,12 @@ from __future__ import annotations
 from phase1.backends.base import TranscriptionBackend
 from phase1.backends.canary_backend import CanaryBackend
 from phase1.backends.gigaam_ctc_backend import GigaAMCTCBackend
-from phase1.backends.qwen_asr_backend import QwenASRBackend
 from phase1.backends.therapy_hybrid_backend import TherapyHybridBackend
 from phase1.backends.whisperx_backend import WhisperXBackend
 
 _BACKENDS: dict[str, TranscriptionBackend] = {
     CanaryBackend.backend_id: CanaryBackend(),
     GigaAMCTCBackend.backend_id: GigaAMCTCBackend(),
-    QwenASRBackend.backend_id: QwenASRBackend(),
     TherapyHybridBackend.backend_id: TherapyHybridBackend(),
     WhisperXBackend.backend_id: WhisperXBackend(),
 }

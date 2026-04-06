@@ -67,37 +67,8 @@ class CliTest(unittest.TestCase):
         self.assertEqual("/tmp/eclm", backend.options["eclm_model_path"])
         self.assertEqual("mps", backend.options["eclm_device"])
 
-    def test_qwen_flags_build_backend_options(self) -> None:
-        with (
-            patch.object(cli, "run") as run_mock,
-            patch.object(
-                sys,
-                "argv",
-                [
-                    "transcribe.py",
-                    "/tmp/audio.mp3",
-                    "--backend",
-                    "qwen_asr",
-                    "--lang",
-                    "ru",
-                    "--qwen-model-path",
-                    "/tmp/qwen-model",
-                    "--qwen-context",
-                    "therapy session",
-                    "--qwen-disable-forced-aligner",
-                    "--qwen-forced-aligner-path",
-                    "/tmp/qwen-aligner",
-                ],
-            ),
-        ):
-            cli.main()
-
-        backend = run_mock.call_args.kwargs["backend"]
-        self.assertEqual("qwen_asr", backend.id)
-        self.assertEqual("/tmp/qwen-model", backend.options["model_path"])
-        self.assertEqual("therapy session", backend.options["context"])
-        self.assertFalse(backend.options["use_forced_aligner"])
-        self.assertEqual("/tmp/qwen-aligner", backend.options["forced_aligner_model_path"])
+    def test_qwen_backend_is_not_advertised(self) -> None:
+        self.assertNotIn("qwen_asr", cli.list_backend_ids())
 
 
 if __name__ == "__main__":

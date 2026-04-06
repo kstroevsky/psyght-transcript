@@ -37,11 +37,6 @@ from phase1.config import (  # noqa: E402
     resolve_detect_model,
     resolve_lang_model_map,
 )
-from phase1.qwen_asr.workflow import (  # noqa: E402
-    DEFAULT_QWEN_ASR_MODEL_ID,
-    DEFAULT_QWEN_FORCED_ALIGNER_ID,
-    download_qwen_assets,
-)
 from phase1.therapy.pipeline import resolve_therapy_backend_options  # noqa: E402
 
 
@@ -69,25 +64,6 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Start/reuse a Dockerized Ollama instance and preload qwen3:8b.",
     )
-    parser.add_argument(
-        "--install-qwen-asr-helper",
-        action="store_true",
-        help="Create phase1/.qwen-asr-venv for Qwen3-ASR training and inference.",
-    )
-    parser.add_argument(
-        "--download-qwen-asr-model",
-        action="store_true",
-        help="Download Qwen/Qwen3-ASR-1.7B into phase1/models/qwen_asr.",
-    )
-    parser.add_argument(
-        "--download-qwen-asr-forced-aligner",
-        action="store_true",
-        help="Also download Qwen/Qwen3-ForcedAligner-0.6B into phase1/models/qwen_asr.",
-    )
-    parser.add_argument("--qwen-asr-model-id", default=DEFAULT_QWEN_ASR_MODEL_ID)
-    parser.add_argument("--qwen-asr-model-dir", default=None)
-    parser.add_argument("--qwen-asr-forced-aligner-id", default=DEFAULT_QWEN_FORCED_ALIGNER_ID)
-    parser.add_argument("--qwen-asr-forced-aligner-dir", default=None)
     parser.add_argument(
         "--skip-default-models",
         action="store_true",
@@ -182,18 +158,6 @@ def main() -> None:
         _run_tool("setup_canary_helper.py")
     if args.install_ollama_qwen:
         _run_tool("setup_ollama_qwen.py")
-    if args.install_qwen_asr_helper:
-        _run_tool("setup_qwen_asr_helper.py")
-    if args.download_qwen_asr_model:
-        assets = download_qwen_assets(
-            model_id=args.qwen_asr_model_id,
-            model_dir=args.qwen_asr_model_dir,
-            forced_aligner_id=args.qwen_asr_forced_aligner_id,
-            forced_aligner_dir=args.qwen_asr_forced_aligner_dir,
-            download_forced_aligner=args.download_qwen_asr_forced_aligner,
-            token=HF_TOKEN or None,
-        )
-        print(f"[DL] Qwen ASR assets: {assets}")
     if args.ctc_kenlm_lang:
         tool_args: list[str] = []
         for lang in sorted(set(args.ctc_kenlm_lang)):

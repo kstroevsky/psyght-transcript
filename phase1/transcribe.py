@@ -67,14 +67,6 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--eclm-model", default=None, help="Optional fine-tuned mT5 checkpoint used by therapy_hybrid")
     parser.add_argument("--disable-eclm", action="store_true", help="Disable the therapy seq2seq correction stage")
     parser.add_argument("--eclm-device", default=None, help="Optional device override for the therapy seq2seq correction stage")
-    parser.add_argument("--qwen-model-path", default=None, help="Optional local Qwen3-ASR model path for the qwen_asr backend")
-    parser.add_argument("--qwen-context", default="", help="Optional Qwen3-ASR system context prompt")
-    parser.add_argument(
-        "--qwen-disable-forced-aligner",
-        action="store_true",
-        help="Disable the optional Qwen forced aligner even if it is available locally.",
-    )
-    parser.add_argument("--qwen-forced-aligner-path", default=None, help="Optional local Qwen forced-aligner path")
     return parser
 
 
@@ -102,15 +94,6 @@ def _backend_spec(args: argparse.Namespace) -> BackendSpec:
             options["eclm_model_path"] = args.eclm_model
         if args.eclm_device:
             options["eclm_device"] = args.eclm_device
-    if args.backend == "qwen_asr":
-        if args.qwen_model_path:
-            options["model_path"] = args.qwen_model_path
-        if args.qwen_context:
-            options["context"] = args.qwen_context
-        if args.qwen_disable_forced_aligner:
-            options["use_forced_aligner"] = False
-        if args.qwen_forced_aligner_path:
-            options["forced_aligner_model_path"] = args.qwen_forced_aligner_path
     return BackendSpec(id=args.backend, options=options)
 
 
