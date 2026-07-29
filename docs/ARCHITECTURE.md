@@ -1,4 +1,4 @@
-# Architecture (Target)
+# Architecture
 
 ```text
 Client
@@ -10,15 +10,20 @@ NestJS Backend (TypeScript)
 Redis 7
   | dequeue
   v
-Python worker (WhisperX -> Pyannote -> e5)
+Python Transcription Worker
+  backend: canary | gigaam_ctc | whisperx | therapy_hybrid
+  stages:  audio load -> ASR -> alignment -> diarization -> merge -> embedding
   | persist
   v
 PostgreSQL 17 + ParadeDB
+  (meetings + segments + BM25 + pgvector)
 ```
+
+Phases 3 (worker runtime), 4 (NestJS API), and 5 (WebSocket) are planned scaffolds; `phase1` and `phase2` are the active implementation layers.
 
 ## Core Components
 - `contracts`: the only cross-phase shared surface; owns transcript dataclasses and JSON serializers
-- `phase1`: local transcription primitives, compare-mode orchestration, backend adapters, progress/artifact persistence, and final output formatting
+- `phase1`: transcription backends, pipeline stage wrappers, therapy merge pipeline, runtime orchestration, compare-mode experiment layer, quality meta-layer, and output formatting
 - `phase2`: DB schema, ingestion, embedding generation, and search helpers
 - `phase3` (planned): Redis/BullMQ-connected worker runtime
 - `phase4` (planned): NestJS API surface
@@ -29,8 +34,10 @@ PostgreSQL 17 + ParadeDB
 - `phase1/pipeline/*` owns stage wrappers for audio loading, diarization, and backend-independent speaker assignment.
 - `phase1/therapy/*` owns the additive Russian therapy pipeline: Canary-first transcript structure, CTC anchoring, Whisper guardrails, Qwen merge, and ECLM data-prep helpers.
 - `phase1/runtime/*` owns single-run orchestration, progress state, artifact persistence, and synthetic single-speaker handling.
-- `phase1/quality/*` owns the quality meta-layer: independent quality checks, report assembly, and ranking shared by compare mode and decoder tuning.
+- `phase1/eval/*` owns reference-backed accuracy metrics (WER/CER with S/D/I, cpWER, DER), gold-reference loading, evaluation-corpus scoring, and transcript diffs. It depends only on `contracts` (plus optional `rapidfuzz`/`pyannote.metrics`).
+- `phase1/quality/*` owns the quality meta-layer: independent quality checks, report assembly, and ranking shared by compare mode and decoder tuning. It reuses `eval/*` for normalization and error rates.
 - `phase1/compare_runtime/*` owns preset loading plus compare experiment orchestration only; it consumes `runtime/*` and `quality/*` but does not own scoring logic.
+- `phase1/workbench/*` owns the top experiment layer: experiment manifests (pipeline variants expanded into `ComparePreset`s), the leaderboard, and the marimo notebook. It composes `compare_runtime/*` and `eval/*`.
 - `phase2/db/*` owns DB connections, row/query helpers, and repository-style operations.
 - `phase2/embeddings/*` owns multilingual-e5 encoding only.
 
@@ -39,11 +46,12 @@ PostgreSQL 17 + ParadeDB
 - Stage layer: `phase1/pipeline/*`
 - Therapy stage layer: `phase1/therapy/*`
 - Application/runtime layer: `phase1/runtime/*`
+- Metric layer: `phase1/eval/*`
 - Meta/quality layer: `phase1/quality/*`
-- Experiment layer: `phase1/compare_runtime/*`, `phase1/tuning/*`
+- Experiment layer: `phase1/compare_runtime/*`, `phase1/tuning/*`, `phase1/workbench/*`
 
 Dependency direction is intentionally one-way:
-`compare_runtime` / `tuning` -> `quality` -> `runtime` / `pipeline` / `backends`
+`workbench` -> `compare_runtime` / `tuning` -> `quality` -> `eval` / `runtime` / `pipeline` / `backends`, and `eval` -> `contracts`
 
 Additional boundary notes:
 - Compare preset JSON is normalized into typed pipeline policy objects before runtime options are built.

@@ -20,6 +20,7 @@ _ensure_repo_root_on_path()
 
 from phase1.backends import BackendSpec, list_backend_ids  # noqa: E402
 from phase1.runtime.runner import run  # noqa: E402
+from phase1.therapy.merge import DEFAULT_OLLAMA_MERGE_MODEL, list_merge_instruction_variants  # noqa: E402
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -62,8 +63,18 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--use-live-canary", action="store_true", help="Use the live Canary backend inside therapy_hybrid.")
     parser.add_argument("--canary-json", default=None, help="Precomputed Canary artifact used by therapy_hybrid.")
     parser.add_argument("--merge-provider", choices=["ollama", "rule_based"], default=None)
-    parser.add_argument("--ollama-model", default="qwen3:8b")
+    parser.add_argument(
+        "--ollama-model",
+        default=DEFAULT_OLLAMA_MERGE_MODEL,
+        help="Local Ollama merge model tag, for example qwen3:8b or gemma4-27b.",
+    )
     parser.add_argument("--ollama-base-url", default="http://127.0.0.1:11434")
+    parser.add_argument(
+        "--merge-instruction-variant",
+        choices=list_merge_instruction_variants(),
+        default=None,
+        help="Named prompt instruction profile used by therapy_hybrid when merge_provider=ollama.",
+    )
     parser.add_argument("--eclm-model", default=None, help="Optional fine-tuned mT5 checkpoint used by therapy_hybrid")
     parser.add_argument("--disable-eclm", action="store_true", help="Disable the therapy seq2seq correction stage")
     parser.add_argument("--eclm-device", default=None, help="Optional device override for the therapy seq2seq correction stage")
@@ -88,6 +99,8 @@ def _backend_spec(args: argparse.Namespace) -> BackendSpec:
                 "model": args.ollama_model,
                 "base_url": args.ollama_base_url,
             }
+            if args.merge_instruction_variant:
+                options["merge_provider"]["instruction_variant"] = args.merge_instruction_variant
         if args.disable_eclm:
             options["eclm"] = {"enabled": False}
         if args.eclm_model:

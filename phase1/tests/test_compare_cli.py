@@ -20,6 +20,29 @@ class CompareCliTest(unittest.TestCase):
         presets = run_experiment_mock.call_args.kwargs["presets"]
         self.assertEqual(["canary", "therapy_hybrid"], [preset.backend.id for preset in presets])
 
+    def test_therapy_backend_forwards_ollama_model_override(self) -> None:
+        with (
+            patch.object(cli, "run_experiment", return_value={"runs": []}) as run_experiment_mock,
+            patch.object(
+                sys,
+                "argv",
+                [
+                    "compare.py",
+                    "/tmp/audio.mp3",
+                    "--backend",
+                    "therapy_hybrid",
+                    "--merge-provider",
+                    "ollama",
+                    "--ollama-model",
+                    "gemma4-27b",
+                ],
+            ),
+        ):
+            cli.main()
+
+        preset = run_experiment_mock.call_args.kwargs["presets"][0]
+        self.assertEqual("gemma4-27b", preset.backend.options["merge_provider"]["model"])
+
 
 if __name__ == "__main__":
     unittest.main()

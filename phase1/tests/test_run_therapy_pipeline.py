@@ -86,6 +86,32 @@ class RunTherapyPipelineCliTest(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError, "requires Canary input"):
                     therapy_cli.main()
 
+    def test_ollama_model_override_is_forwarded(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            audio_path = Path(tmp_dir) / "audio.wav"
+            output_dir = Path(tmp_dir) / "out"
+            audio_path.write_bytes(b"")
+
+            with (
+                patch.object(therapy_cli, "execute", return_value=types.SimpleNamespace(wall_clock_sec=1.0)) as execute_mock,
+                patch.object(
+                    sys,
+                    "argv",
+                    [
+                        "run_therapy_pipeline.py",
+                        str(audio_path),
+                        "--output-dir",
+                        str(output_dir),
+                        "--ollama-model",
+                        "gemma4-27b",
+                    ],
+                ),
+            ):
+                therapy_cli.main()
+
+        options = execute_mock.call_args.args[0]
+        self.assertEqual("gemma4-27b", options.backend.options["merge_provider"]["model"])
+
 
 if __name__ == "__main__":
     unittest.main()

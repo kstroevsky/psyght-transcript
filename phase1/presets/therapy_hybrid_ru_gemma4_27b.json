@@ -1,6 +1,6 @@
 {
-  "id": "therapy_hybrid_ru",
-  "description": "Russian therapy pipeline with Canary-first transcript structure, CTC anchoring, Whisper guardrails, and local Ollama merge (Qwen default).",
+  "id": "therapy_hybrid_ru_gemma4_27b",
+  "description": "Russian therapy pipeline with Canary-first transcript structure, CTC anchoring, Whisper guardrails, and local Gemma4-27B merge.",
   "pipeline": {
     "language": "ru",
     "min_speakers": 2,
@@ -11,7 +11,7 @@
     "options": {
       "merge_provider": {
         "id": "ollama",
-        "model": "qwen3:8b",
+        "model": "gemma4-27b",
         "base_url": "http://127.0.0.1:11434"
       }
     }

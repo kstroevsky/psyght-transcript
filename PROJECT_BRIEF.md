@@ -73,6 +73,38 @@ PostgreSQL 17 + ParadeDB
 ---
 
 ## Current Status
+- Experiment workbench + evaluation layer landed on 2026-06-11:
+  - new `phase1/eval/*` metric layer: scalable WER/CER with substitution/deletion/insertion breakdown (rapidfuzz-backed, guarded pure-Python fallback), speaker-attributed cpWER, diarization error rate (DER via `pyannote.metrics`), gold-reference loading for phase1-JSON / Gemini-list / plain-text formats, transcript-vs-reference diffs, and an evaluation-corpus abstraction; depends only on `contracts`
+  - WER/CER are byte-identical to the previous quality-layer numbers for any non-empty reference (an empty reference now scores `1.0` instead of `0.0`, which cannot occur for a whole-transcript reference); `phase1/quality/checks.py` now reuses `phase1/eval`, removing the duplicated normalizer and the O(n*m) pure-Python Levenshtein
+  - new `phase1/workbench/*` experiment layer: experiment manifests declare many pipeline variants with shared `defaults` and `extends` inheritance, each expanding into the same validated `ComparePreset` the compare runtime already consumes; a runner scores each variant against gold references and ranks them into a leaderboard
+  - operator surface: `phase1/tools/eval_corpus.py` (model-free scoring of one transcript or a corpus), `phase1/tools/run_experiment_manifest.py` (`--dry-run` validate/preview, or run to a ranked leaderboard), and a `marimo` notebook `phase1/workbench/experiment_workbench.py` (runs gated behind explicit buttons) as the human interface
+  - new optional deps `phase1/requirements-eval.txt` (rapidfuzz, pyannote.metrics) and `phase1/requirements-workbench.txt` (marimo); both layers import and run without them via fallbacks; starter corpus `phase1/eval/corpus.example.yaml` and example manifest `phase1/workbench/manifests/therapy_merge_compare.example.yaml`
+  - normalization is profile-driven (`default`; `ru_fold` folds ё→е) and the profile is recorded with every score for reproducibility
+  - verification: full `phase1/tests` suite passes (150 tests, up from 118) plus `py_compile` on all new and changed modules
+  - leftover from the removed standalone Qwen-ASR backend remains on disk and is safe to delete: `phase1/.qwen-asr-venv` (~1.5 GB, git-ignored) and stale bytecode under `phase1/qwen_asr/`
+  - next recommended step is to assemble a real held-out Russian gold corpus and run one manifest end-to-end to produce the first accuracy leaderboard, then validate whether `proxy_quality_score` tracks real WER on the gold
+- Gemma4-27B merge support landed on 2026-04-09:
+  - the therapy merge implementation is now named and documented as a generic local Ollama merge stage instead of a Qwen-only path; Qwen remains the default model, but local `gemma4-27b` is now a first-class supported alternative
+  - added operator support via `phase1/tools/setup_ollama_gemma4.py`, `phase1/download_models.py --install-ollama-gemma4`, and `phase1/presets/therapy_hybrid_ru_gemma4_27b.json`
+  - merge requests remain non-thinking and token-capped regardless of whether the selected local model is Qwen or Gemma4-27B
+  - next recommended step is to run the new Gemma4-27B preset on reviewed Russian therapy windows and compare `01e_therapy_merge_debug.json` against the current Qwen baseline before changing defaults
+- Bogomolov 10-minute Canary-first rerun completed on 2026-04-07 under `phase1/runs/bogomolov_canary_first_10min_20260407_retry2/`:
+  - input was `/Users/kstroevsky/Downloads/2021-03-30 10.21.41 Zoom Meeting Vladimir Bogomolov.mp4` with `--duration-limit 600`; the run finished successfully with `wall_clock_sec=847.999`
+  - live `therapy_hybrid` used WhisperX + GigaAM CTC + live Canary + diarization; Canary processed `20` helper chunks with `model_load_sec=61.271` and `inference_sec=494.368`
+  - alignment again attempted `mps` first and fell back to CPU with `Output channels > 65536 not supported at the MPS device.`
+  - the final transcript is still Canary-first and shows lexical rough edges in early long windows, so prompt wording alone is unlikely to resolve the remaining quality issues without broader evaluation or model-side changes
+- Merge-instruction prompt comparison landed on 2026-04-07:
+  - added `phase1/tools/compare_merge_instructions.py` plus named merge prompt variants `baseline_v1`, `priority_ladder_v1`, `consensus_gate_v1`, `token_preservation_v1`, and `verification_checklist_v1`
+  - on the Bogomolov 10-minute rerun, all five instruction variants were executed on `5` divergent merge windows and wrote `artifacts/06_merge_instruction_compare_20260407_221605.json`
+  - baseline, priority-ladder, token-preservation, and verification-checklist produced the same final accepted texts on the sampled windows; `consensus_gate_v1` was only more conservative about accepting LLM outputs and did not improve the final text
+  - Ollama was unavailable in this session, so the comparison tool auto-fell back to local HF inference with `Qwen/Qwen2.5-0.5B-Instruct`; on this Apple Silicon host, that comparison path required CPU because `mps` hit `MPSTemporaryNDArray` size assertions
+  - next recommended step is to keep `baseline_v1` (or `verification_checklist_v1`, which tied on the sampled windows) and expand the evaluation set with reviewed therapy segments before changing the production merge prompt
+- Repo-sample Canary-first therapy run completed on 2026-04-07 under `phase1/runs/canary_first_repo_sample_20260407/`:
+  - input was `phase1/test_first2min.mp3`; the run finished successfully with `wall_clock_sec=167.547`
+  - live `therapy_hybrid` used WhisperX + GigaAM CTC + live Canary + diarization; Canary processed `4` helper chunks with `model_load_sec=81.896` and `inference_sec=40.877`
+  - `01e_therapy_merge_debug.json` recorded `15/15` decisions as `source=canary_base`; `01f_therapy_eclm_debug.json` was present but empty, matching the current Canary-first Step 5B skip behavior
+  - alignment first tried `mps` and fell back to CPU with `Output channels > 65536 not supported at the MPS device.`
+  - final sample transcript wrote `15` speaker-tagged lines; next recommended step remains a representative long Russian therapy session plus merge-debug review because the short sample still shows lexical rough edges in the final text
 - Canary-first `therapy_hybrid` landed on 2026-04-06:
   - live or artifact Canary is now the canonical transcript structure and base text for therapy runs; CTC remains the lexical truth anchor and Whisper is retained only as an auxiliary post-guard signal
   - the local Qwen merge prompt and deterministic fallback now preserve Canary by default and only apply conservative CTC-guided corrections instead of using the previous Whisper-primary merge behavior

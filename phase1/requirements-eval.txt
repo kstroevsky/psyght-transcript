@@ -1,0 +1,11 @@
+# phase1 evaluation layer (phase1/eval) optional accelerators.
+#
+# The eval package imports and runs without these (pure-Python fallbacks), but
+# they are required for scalable, full-session scoring:
+#   - rapidfuzz: bit-parallel Levenshtein with edit operations for WER/CER/cpWER
+#     on ~1-hour transcripts (the pure-Python fallback is guarded and refuses
+#     pathologically large inputs).
+#   - pyannote.metrics: diarization error rate. Already installed transitively
+#     via pyannote.audio in the main runtime; pinned here for the eval-only env.
+rapidfuzz>=3.0
+pyannote.metrics>=3.2

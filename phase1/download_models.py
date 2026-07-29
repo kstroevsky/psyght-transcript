@@ -65,6 +65,11 @@ def build_parser() -> argparse.ArgumentParser:
         help="Start/reuse a Dockerized Ollama instance and preload qwen3:8b.",
     )
     parser.add_argument(
+        "--install-ollama-gemma4",
+        action="store_true",
+        help="Start/reuse a Dockerized Ollama instance and preload local Gemma4-27B.",
+    )
+    parser.add_argument(
         "--skip-default-models",
         action="store_true",
         help="Skip default WhisperX/GigaAM/pyannote downloads and only run the explicitly requested helper/model actions.",
@@ -158,6 +163,8 @@ def main() -> None:
         _run_tool("setup_canary_helper.py")
     if args.install_ollama_qwen:
         _run_tool("setup_ollama_qwen.py")
+    if args.install_ollama_gemma4:
+        _run_tool("setup_ollama_gemma4.py")
     if args.ctc_kenlm_lang:
         tool_args: list[str] = []
         for lang in sorted(set(args.ctc_kenlm_lang)):

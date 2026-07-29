@@ -21,6 +21,7 @@ from phase1.backends import BackendSpec  # noqa: E402
 from phase1.config.env import BASE_DIR  # noqa: E402
 from phase1.runtime.options import RunOptions  # noqa: E402
 from phase1.runtime.runner import execute  # noqa: E402
+from phase1.therapy.merge import DEFAULT_OLLAMA_MERGE_MODEL, list_merge_instruction_variants  # noqa: E402
 
 
 def _timestamp() -> str:
@@ -41,8 +42,18 @@ def build_parser() -> argparse.ArgumentParser:
         help="Disable the live Canary stage in the dedicated therapy runner.",
     )
     parser.add_argument("--merge-provider", choices=["ollama", "rule_based"], default="ollama")
-    parser.add_argument("--ollama-model", default="qwen3:8b")
+    parser.add_argument(
+        "--ollama-model",
+        default=DEFAULT_OLLAMA_MERGE_MODEL,
+        help="Local Ollama merge model tag, for example qwen3:8b or gemma4-27b.",
+    )
     parser.add_argument("--ollama-base-url", default="http://127.0.0.1:11434")
+    parser.add_argument(
+        "--merge-instruction-variant",
+        choices=list_merge_instruction_variants(),
+        default=None,
+        help="Named prompt instruction profile used by the Ollama merge stage.",
+    )
     parser.add_argument("--eclm-model", default=None, help="Optional fine-tuned mT5 checkpoint for Step 5B")
     parser.add_argument("--disable-eclm", action="store_true", help="Disable the Step 5B seq2seq correction stage")
     parser.add_argument("--eclm-device", default=None, help="Optional device override for the Step 5B model")
@@ -84,6 +95,10 @@ def main() -> None:
         backend_options["eclm_model_path"] = str(Path(args.eclm_model).expanduser().resolve())
     if args.eclm_device:
         backend_options["eclm_device"] = args.eclm_device
+    if args.merge_instruction_variant:
+        cast_merge_provider = dict(backend_options["merge_provider"])
+        cast_merge_provider["instruction_variant"] = args.merge_instruction_variant
+        backend_options["merge_provider"] = cast_merge_provider
     if args.canary_json:
         backend_options["canary_transcript_path"] = str(Path(args.canary_json).expanduser().resolve())
     if args.device:

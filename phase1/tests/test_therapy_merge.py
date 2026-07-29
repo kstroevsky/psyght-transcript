@@ -5,7 +5,12 @@ from __future__ import annotations
 import unittest
 from unittest.mock import patch
 
-from phase1.therapy.merge import OllamaQwenSegmentMerger, RuleBasedSegmentMerger
+from phase1.therapy.merge import (
+    OllamaSegmentMerger,
+    RuleBasedSegmentMerger,
+    build_ollama_merge_payload,
+    resolve_merge_instruction_variant,
+)
 from phase1.therapy.models import MergeRequest
 
 
@@ -82,7 +87,7 @@ class TherapyMergeTest(unittest.TestCase):
         self.assertEqual(("ctc_whisper_consensus_override",), decision.notes)
 
     def test_ollama_merger_uses_non_thinking_deterministic_payload(self) -> None:
-        merger = OllamaQwenSegmentMerger(model="qwen3:8b")
+        merger = OllamaSegmentMerger(model="gemma4-27b")
         request = MergeRequest(
             language="ru",
             start=0.0,
@@ -97,7 +102,7 @@ class TherapyMergeTest(unittest.TestCase):
 
         self.assertEqual("итог", decision.text)
         payload = request_mock.call_args.args[0]
-        self.assertEqual("qwen3:8b", payload["model"])
+        self.assertEqual("gemma4-27b", payload["model"])
         self.assertIn("Base transcript [Canary]", payload["prompt"])
         self.assertFalse(payload["think"])
         self.assertFalse(payload["stream"])
@@ -105,8 +110,29 @@ class TherapyMergeTest(unittest.TestCase):
         self.assertEqual(1, payload["options"]["top_k"])
         self.assertEqual(96, payload["options"]["num_predict"])
 
+    def test_payload_can_use_named_instruction_variant(self) -> None:
+        payload = build_ollama_merge_payload(
+            "gemma4-27b",
+            MergeRequest(
+                language="ru",
+                start=0.0,
+                end=1.0,
+                ctc_text="точный текст",
+                whisper_text="альтернативный текст",
+                canary_text="базовый текст",
+            ),
+            instruction_variant="consensus_gate_v1",
+        )
+
+        self.assertIn("Instruction profile [consensus_gate_v1]", payload["prompt"])
+        self.assertIn("Change Canary only if at least one gate passes", payload["prompt"])
+
+    def test_unknown_instruction_variant_raises(self) -> None:
+        with self.assertRaisesRegex(ValueError, "Unsupported merge instruction variant"):
+            resolve_merge_instruction_variant("not_a_real_variant")
+
     def test_ollama_merger_keeps_canary_when_ctc_is_missing(self) -> None:
-        merger = OllamaQwenSegmentMerger(model="qwen3:8b")
+        merger = OllamaSegmentMerger(model="qwen3:8b")
 
         with patch.object(merger, "_request_json") as request_mock:
             decision = merger.merge(
@@ -125,7 +151,7 @@ class TherapyMergeTest(unittest.TestCase):
         request_mock.assert_not_called()
 
     def test_ollama_merger_anchors_to_ctc_when_canary_is_foreign_for_russian(self) -> None:
-        merger = OllamaQwenSegmentMerger(model="qwen3:8b")
+        merger = OllamaSegmentMerger(model="qwen3:8b")
 
         with patch.object(merger, "_request_json") as request_mock:
             decision = merger.merge(
@@ -144,7 +170,7 @@ class TherapyMergeTest(unittest.TestCase):
         request_mock.assert_not_called()
 
     def test_ollama_merger_rejects_unanchored_ollama_output(self) -> None:
-        merger = OllamaQwenSegmentMerger(model="qwen3:8b")
+        merger = OllamaSegmentMerger(model="qwen3:8b")
 
         with patch.object(merger, "_request_json", return_value={"response": "полностью новая формулировка без опоры"}) as request_mock:
             decision = merger.merge(
@@ -163,7 +189,7 @@ class TherapyMergeTest(unittest.TestCase):
         request_mock.assert_called_once()
 
     def test_ollama_fallback_preserves_canary_base(self) -> None:
-        merger = OllamaQwenSegmentMerger(model="qwen3:8b")
+        merger = OllamaSegmentMerger(model="qwen3:8b")
 
         with patch.object(merger, "_request_json", side_effect=RuntimeError("offline")):
             decision = merger.merge(
@@ -182,7 +208,7 @@ class TherapyMergeTest(unittest.TestCase):
         self.assertEqual(("ollama_fallback", "rule_based_canary_base"), decision.notes)
 
     def test_ollama_merger_honors_call_budget(self) -> None:
-        merger = OllamaQwenSegmentMerger(model="qwen3:8b", max_ollama_calls=0)
+        merger = OllamaSegmentMerger(model="qwen3:8b", max_ollama_calls=0)
 
         with patch.object(merger, "_request_json") as request_mock:
             decision = merger.merge(

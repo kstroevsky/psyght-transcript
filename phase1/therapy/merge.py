@@ -54,6 +54,53 @@ _LOW_INFORMATION_TOKENS = {
     "я",
     "і",
 }
+DEFAULT_OLLAMA_MERGE_MODEL = "qwen3:8b"
+DEFAULT_MERGE_INSTRUCTION_VARIANT = "baseline_v1"
+_MERGE_INSTRUCTION_VARIANTS: dict[str, str] = {
+    "baseline_v1": (
+        "Rules:\n"
+        "- Start from Canary and keep its structure unless a concrete correction is justified.\n"
+        "- Use CTC as the main truth source for specific word and meaning corrections.\n"
+        "- Use Whisper only as an auxiliary hint when Canary and CTC remain ambiguous.\n"
+        "- Make the smallest possible edit. Do not rephrase, summarize, or add unsupported words.\n"
+        "- Output corrected transcript text only. No commentary."
+    ),
+    "priority_ladder_v1": (
+        "Rules:\n"
+        "- Treat Canary as the default answer and preserve its wording when evidence is weak.\n"
+        "- Apply a correction only when CTC provides a clearer same-language lexical fix.\n"
+        "- Use Whisper only as a tie-breaker between Canary and CTC; never let Whisper overrule both.\n"
+        "- Prefer one local correction over rewriting the full segment.\n"
+        "- Output corrected transcript text only. No commentary."
+    ),
+    "consensus_gate_v1": (
+        "Decision procedure:\n"
+        "- Start from Canary.\n"
+        "- Change Canary only if at least one gate passes: (1) CTC and Whisper agree on the correction; "
+        "(2) CTC clearly repairs a garbled or missing same-language word; "
+        "(3) Canary is foreign-language or obviously broken.\n"
+        "- If no gate passes, return Canary unchanged.\n"
+        "- Keep every accepted edit minimal and directly supported by the sources.\n"
+        "- Output corrected transcript text only. No commentary."
+    ),
+    "token_preservation_v1": (
+        "Editing policy:\n"
+        "- Act as a surgical transcript editor, not a paraphraser.\n"
+        "- Preserve token order, clause structure, and approximate length from Canary unless the anchor requires a fix.\n"
+        "- Replace only the smallest span that is directly supported by CTC.\n"
+        "- Keep punctuation and filler words unless the correction clearly changes them.\n"
+        "- Output corrected transcript text only. No commentary."
+    ),
+    "verification_checklist_v1": (
+        "Checklist before answering:\n"
+        "- The output must stay in the requested language and script.\n"
+        "- Every important content word must be supported by Canary, CTC, or Whisper.\n"
+        "- Do not add new facts, cleanup, or stylistic rewrites.\n"
+        "- If CTC looks fragmentary or low-information, keep Canary.\n"
+        "- If unsure after checking the sources, return Canary unchanged.\n"
+        "- Output corrected transcript text only. No commentary."
+    ),
+}
 
 
 def _language_name(language: str) -> str:
@@ -64,21 +111,50 @@ def _language_name(language: str) -> str:
     }.get(str(language or "").lower(), str(language or "LANGUAGE"))
 
 
-def build_qwen_merge_prompt(request: MergeRequest) -> str:
-    """Render the merge prompt used for the Qwen/Ollama prototype stage."""
+def list_merge_instruction_variants() -> tuple[str, ...]:
+    """Return supported named instruction variants for the merge prompt."""
+
+    return tuple(_MERGE_INSTRUCTION_VARIANTS.keys())
+
+
+def resolve_merge_instruction_variant(name: str | None) -> tuple[str, str]:
+    """Resolve one named instruction variant or raise for unknown input."""
+
+    requested = str(name or DEFAULT_MERGE_INSTRUCTION_VARIANT).strip().lower()
+    aliases = {
+        "default": DEFAULT_MERGE_INSTRUCTION_VARIANT,
+        "baseline": DEFAULT_MERGE_INSTRUCTION_VARIANT,
+    }
+    resolved = aliases.get(requested, requested)
+    if resolved not in _MERGE_INSTRUCTION_VARIANTS:
+        supported = ", ".join(sorted(_MERGE_INSTRUCTION_VARIANTS))
+        raise ValueError(f"Unsupported merge instruction variant {name!r}. Expected one of: {supported}")
+    return resolved, _MERGE_INSTRUCTION_VARIANTS[resolved]
+
+
+def build_ollama_merge_prompt(
+    request: MergeRequest,
+    *,
+    instruction_variant: str | None = None,
+    custom_instructions: str | None = None,
+) -> str:
+    """Render the merge prompt used for the local Ollama merge stage."""
 
     language_name = _language_name(request.language)
+    if custom_instructions is not None:
+        instruction_name = "custom"
+        instructions = normalize_text(custom_instructions)
+    else:
+        instruction_name, instructions = resolve_merge_instruction_variant(instruction_variant)
     return (
         f"You are correcting one {language_name} transcript segment.\n"
+        "Goal: produce the final transcript text for exactly this segment.\n"
         f"Base transcript [Canary]: {request.canary_text or '[empty]'}\n"
         f"Truth anchor [CTC]: {request.ctc_text or '[empty]'}\n"
         f"Auxiliary transcript [Whisper]: {request.whisper_text or '[empty]'}\n"
-        "Rules:\n"
-        "- Start from Canary and keep its structure unless a concrete correction is justified.\n"
-        "- Use CTC as the main truth source for specific word and meaning corrections.\n"
-        "- Use Whisper only as an auxiliary hint when Canary and CTC remain ambiguous.\n"
-        "- Make the smallest possible edit. Do not rephrase, summarize, or add unsupported words.\n"
-        f"- Output corrected {language_name} only. No commentary."
+        f"Instruction profile [{instruction_name}]:\n"
+        f"{instructions}\n"
+        f"Output corrected {language_name} only. No commentary."
     )
 
 
@@ -183,12 +259,22 @@ def _should_use_whisper_semantic_override(
     return False
 
 
-def build_qwen_merge_payload(model: str, request: MergeRequest) -> dict[str, Any]:
+def build_ollama_merge_payload(
+    model: str,
+    request: MergeRequest,
+    *,
+    instruction_variant: str | None = None,
+    custom_instructions: str | None = None,
+) -> dict[str, Any]:
     """Render a deterministic non-thinking Ollama request for transcript merge."""
 
     return {
         "model": model,
-        "prompt": build_qwen_merge_prompt(request),
+        "prompt": build_ollama_merge_prompt(
+            request,
+            instruction_variant=instruction_variant,
+            custom_instructions=custom_instructions,
+        ),
         "stream": False,
         "think": False,
         "options": {
@@ -237,17 +323,19 @@ class RuleBasedSegmentMerger:
         return MergeDecision(text=canary_text, source="canary_base", notes=("rule_based_canary_base",))
 
 
-class OllamaQwenSegmentMerger:
-    """Prototype merge stage backed by a local Ollama-served Qwen model."""
+class OllamaSegmentMerger:
+    """Prototype merge stage backed by a local Ollama-served merge model."""
 
     def __init__(
         self,
         *,
-        model: str = "qwen3:8b",
+        model: str = DEFAULT_OLLAMA_MERGE_MODEL,
         base_url: str = "http://127.0.0.1:11434",
         timeout_sec: float = 30.0,
         max_ollama_calls: int = 8,
         max_segment_tokens: int = 12,
+        instruction_variant: str | None = None,
+        custom_instructions: str | None = None,
         fallback: RuleBasedSegmentMerger | None = None,
     ) -> None:
         self._model = model
@@ -256,6 +344,8 @@ class OllamaQwenSegmentMerger:
         self._max_ollama_calls = max(0, int(max_ollama_calls))
         self._max_segment_tokens = max(1, int(max_segment_tokens))
         self._ollama_calls = 0
+        self._instruction_variant = resolve_merge_instruction_variant(instruction_variant)[0] if custom_instructions is None else None
+        self._custom_instructions = normalize_text(custom_instructions) if custom_instructions else None
         self._fallback = fallback or RuleBasedSegmentMerger()
 
     def _request_json(self, payload: dict[str, Any]) -> dict[str, Any]:
@@ -328,7 +418,14 @@ class OllamaQwenSegmentMerger:
 
         try:
             self._ollama_calls += 1
-            payload = self._request_json(build_qwen_merge_payload(self._model, normalized))
+            payload = self._request_json(
+                build_ollama_merge_payload(
+                    self._model,
+                    normalized,
+                    instruction_variant=self._instruction_variant,
+                    custom_instructions=self._custom_instructions,
+                )
+            )
             text = normalize_text(str(payload.get("response") or ""))
             if text:
                 if _looks_foreign_for_language(text, normalized.language):
@@ -382,10 +479,18 @@ def merger_from_options(options: dict[str, Any] | None = None):
         return RuleBasedSegmentMerger()
     if provider != "ollama":
         raise ValueError(f"Unsupported therapy merge provider: {provider!r}")
-    return OllamaQwenSegmentMerger(
-        model=str(options.get("model") or "qwen3:8b"),
+    return OllamaSegmentMerger(
+        model=str(options.get("model") or DEFAULT_OLLAMA_MERGE_MODEL),
         base_url=str(options.get("base_url") or "http://127.0.0.1:11434"),
         timeout_sec=float(options.get("timeout_sec") or 30.0),
         max_ollama_calls=int(options.get("max_ollama_calls") or 8),
         max_segment_tokens=int(options.get("max_segment_tokens") or 12),
+        instruction_variant=options.get("instruction_variant"),
+        custom_instructions=options.get("custom_instructions"),
     )
+
+
+# Backward-compatible aliases kept because older tools/docs still reference the Qwen-specific names.
+build_qwen_merge_prompt = build_ollama_merge_prompt
+build_qwen_merge_payload = build_ollama_merge_payload
+OllamaQwenSegmentMerger = OllamaSegmentMerger

@@ -10,9 +10,9 @@ Private, self-hosted meeting transcription and search service for a NestJS backe
 
 ## Internal layout
 - `contracts`: shared transcript dataclasses and JSON serializers used by `phase1` and `phase2`
-- `phase1`: transcription pipeline, backend adapters, runtime orchestration, compare wrapper, and a separate quality meta-layer for scoring/ranking
+- `phase1`: transcription backends, therapy merge pipeline, runtime orchestration, compare experiment layer, and quality meta-layer — see [phase1/README.md](/Users/kstroevsky/Desktop/dev/psyght-decoder/phase1/README.md)
 - `phase2`: ParadeDB/Postgres ingestion and search scaffold
-- `phase3`: Redis + BullMQ worker (planned scaffold)
+- `phase3`: Redis + BullMQ worker (planned)
 - `phase4`: NestJS API (planned)
 - `phase5`: WebSocket progress (planned)
 

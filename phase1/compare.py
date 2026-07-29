@@ -20,6 +20,7 @@ from phase1.backends import BackendSpec, list_backend_ids  # noqa: E402
 from phase1.compare_runtime.experiment import run_experiment  # noqa: E402
 from phase1.compare_runtime.presets import ComparePipelineSpec, ComparePreset, load_presets  # noqa: E402
 from phase1.compare_runtime.reference import load_reference_text  # noqa: E402
+from phase1.therapy.merge import DEFAULT_OLLAMA_MERGE_MODEL  # noqa: E402
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -40,7 +41,11 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--use-live-canary", action="store_true")
     parser.add_argument("--canary-json", default=None)
     parser.add_argument("--merge-provider", choices=["ollama", "rule_based"], default=None)
-    parser.add_argument("--ollama-model", default="qwen3:8b")
+    parser.add_argument(
+        "--ollama-model",
+        default=DEFAULT_OLLAMA_MERGE_MODEL,
+        help="Local Ollama merge model tag, for example qwen3:8b or gemma4-27b.",
+    )
     parser.add_argument("--ollama-base-url", default="http://127.0.0.1:11434")
     parser.add_argument(
         "--output-dir",

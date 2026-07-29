@@ -24,3 +24,4 @@ phase1/models/
 phase1/runs/
 phase1/review_chunks/
 phase1/.ollama/
+.codegraph

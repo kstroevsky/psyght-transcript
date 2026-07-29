@@ -51,6 +51,8 @@ class CliTest(unittest.TestCase):
                     "--use-live-canary",
                     "--merge-provider",
                     "rule_based",
+                    "--merge-instruction-variant",
+                    "consensus_gate_v1",
                     "--eclm-model",
                     "/tmp/eclm",
                     "--eclm-device",
@@ -64,6 +66,7 @@ class CliTest(unittest.TestCase):
         self.assertEqual("therapy_hybrid", backend.id)
         self.assertTrue(backend.options["use_live_canary"])
         self.assertEqual("rule_based", backend.options["merge_provider"]["id"])
+        self.assertEqual("consensus_gate_v1", backend.options["merge_provider"]["instruction_variant"])
         self.assertEqual("/tmp/eclm", backend.options["eclm_model_path"])
         self.assertEqual("mps", backend.options["eclm_device"])
 

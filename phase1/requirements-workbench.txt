@@ -1,0 +1,9 @@
+# phase1 experiment workbench (human-facing notebook interface).
+#
+# marimo notebooks are plain .py files: git-diffable, runnable as scripts, and
+# editable by an AI agent as code. Open the workbench with:
+#   marimo edit phase1/workbench/experiment_workbench.py
+#
+# The workbench also depends on the eval accelerators (see requirements-eval.txt).
+marimo>=0.9
+-r requirements-eval.txt

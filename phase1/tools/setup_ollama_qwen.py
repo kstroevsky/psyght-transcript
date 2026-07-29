@@ -1,4 +1,4 @@
-"""Bootstrap a reusable Dockerized Ollama instance with qwen3:8b loaded."""
+"""Bootstrap a reusable Dockerized Ollama instance with a local merge model loaded."""
 
 from __future__ import annotations
 
@@ -21,13 +21,18 @@ def _default_volume_dir() -> Path:
     return _phase1_dir() / ".ollama"
 
 
-def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Start Dockerized Ollama and preload qwen3:8b.")
+def build_parser(
+    *,
+    description: str = "Start Dockerized Ollama and preload qwen3:8b.",
+    default_container_name: str = "phase1-ollama-qwen",
+    default_model: str = "qwen3:8b",
+) -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(description=description)
     parser.add_argument("--docker-bin", default=shutil.which("docker") or "docker")
     parser.add_argument("--image", default="ollama/ollama:latest")
-    parser.add_argument("--container-name", default="phase1-ollama-qwen")
+    parser.add_argument("--container-name", default=default_container_name)
     parser.add_argument("--host-port", type=int, default=11434)
-    parser.add_argument("--model", default="qwen3:8b")
+    parser.add_argument("--model", default=default_model)
     parser.add_argument("--volume-dir", default=str(_default_volume_dir()))
     parser.add_argument("--base-url", default="http://127.0.0.1:11434")
     parser.add_argument("--ready-timeout-sec", type=float, default=120.0)

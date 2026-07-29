@@ -2,68 +2,27 @@
 
 from __future__ import annotations
 
-import re
 from collections import Counter
 from typing import Any
 
 from contracts.transcript import Transcript
+from phase1.eval import normalize_text, reference_error_rates, tokenize, transcript_text
 from phase1.quality.contracts import QualityCheckContext, QualityCheckResult
 
-_PUNCT_RE = re.compile(r"[^\w\s]", flags=re.UNICODE)
-_SPACE_RE = re.compile(r"\s+")
+# WER/CER, normalization, and transcript flattening now live in the dedicated
+# phase1.eval layer (scalable, speaker-aware, single source of truth). They are
+# re-imported here so the quality layer's public surface is unchanged while the
+# implementation is shared. `reference_error_rates` is byte-identical to the
+# previous one for non-empty references (an empty reference now scores 1.0
+# instead of 0.0, which cannot occur for a whole-transcript reference).
 
 
 def _safe_div(numerator: float, denominator: float) -> float:
     return round(numerator / denominator, 6) if denominator else 0.0
 
 
-def normalize_text(text: str) -> str:
-    """Normalize multilingual transcript text for quality comparisons."""
-
-    lowered = text.casefold()
-    without_punct = _PUNCT_RE.sub(" ", lowered)
-    return _SPACE_RE.sub(" ", without_punct).strip()
-
-
 def _tokenize(text: str) -> list[str]:
-    normalized = normalize_text(text)
-    return normalized.split() if normalized else []
-
-
-def _levenshtein(left: list[str], right: list[str]) -> int:
-    if not left:
-        return len(right)
-    if not right:
-        return len(left)
-    previous = list(range(len(right) + 1))
-    for i, left_item in enumerate(left, start=1):
-        current = [i]
-        for j, right_item in enumerate(right, start=1):
-            cost = 0 if left_item == right_item else 1
-            current.append(min(current[-1] + 1, previous[j] + 1, previous[j - 1] + cost))
-        previous = current
-    return previous[-1]
-
-
-def transcript_text(transcript: Transcript) -> str:
-    """Flatten transcript segments into one space-separated string."""
-
-    return " ".join(segment.text.strip() for segment in transcript.segments if segment.text.strip())
-
-
-def reference_error_rates(reference_text: str, candidate_text: str) -> dict[str, float]:
-    """Compute normalized WER and CER against an optional reference transcript."""
-
-    normalized_reference = normalize_text(reference_text)
-    normalized_candidate = normalize_text(candidate_text)
-    reference_words = normalized_reference.split() if normalized_reference else []
-    candidate_words = normalized_candidate.split() if normalized_candidate else []
-    reference_chars = list(normalized_reference.replace(" ", ""))
-    candidate_chars = list(normalized_candidate.replace(" ", ""))
-    return {
-        "wer": _safe_div(_levenshtein(reference_words, candidate_words), len(reference_words)),
-        "cer": _safe_div(_levenshtein(reference_chars, candidate_chars), len(reference_chars)),
-    }
+    return tokenize(text)
 
 
 def proxy_quality_metrics(transcript: Transcript) -> dict[str, float]:

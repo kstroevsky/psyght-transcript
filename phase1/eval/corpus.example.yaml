@@ -1,0 +1,35 @@
+# phase1 evaluation corpus — example / starter.
+#
+# A corpus is just a list of (audio, gold-reference) pairs. Scoring is model-free:
+# point `--transcripts-dir` at a run folder containing `<id>.json` hypotheses, or
+# add a per-item `hypothesis:` path. Paths are resolved relative to THIS file.
+#
+# To grow the held-out set, copy this file, drop your gold transcripts somewhere,
+# and add one item per session. No code changes needed.
+
+name: ru_therapy_starter
+
+# Default normalization profile for this corpus. `ru_fold` folds ё->е, which is
+# the right convention for Russian accuracy comparison. Use `default` to match
+# the legacy compare-mode numbers exactly.
+profile: ru_fold
+
+defaults:
+  language: ru
+
+items:
+  # The Gemini-reviewed first 10 minutes (speaker A/B labels, start times only;
+  # segment ends are inferred for DER). This is the strongest RU gold today.
+  - id: bogomolov_0939_10min
+    audio: ~/Downloads/2021-03-30 09.39.42 Zoom Meeting Vladimir Bogomolov.mp4
+    reference: ../../2021-03-30_09-39-42_Bogomolov_first_10min.json
+    duration_limit: 600
+    notes: Gemini HQ review; A/B speakers; ends inferred.
+
+  # The tiny English smoke clip — useful for fast pipeline plumbing checks, not
+  # for Russian accuracy. language override demonstrates per-item defaults merge.
+  - id: test_first2min
+    audio: ../test_first2min.mp3
+    reference: ../test_first2min.json
+    language: en
+    notes: Short EN smoke sample shipped in the repo.

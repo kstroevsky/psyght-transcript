@@ -1,0 +1,58 @@
+# Example experiment manifest — compare therapy merge strategies on the gold.
+#
+# Run a dry validation (no models):
+#   python -m phase1.tools.run_experiment_manifest \
+#     --manifest phase1/workbench/manifests/therapy_merge_compare.example.yaml --dry-run
+#
+# Full run (needs the audio + a live Canary/Ollama stack), scored vs the gold:
+#   python -m phase1.tools.run_experiment_manifest \
+#     --manifest phase1/workbench/manifests/therapy_merge_compare.example.yaml
+#
+# Note how `extends` lets qwen_verify and gemma4 inherit the whole qwen_baseline
+# merge_provider and override a single field. Paths are relative to this file.
+
+id: therapy_merge_compare
+description: Canary-first therapy pipeline — compare merge providers/instructions vs the Bogomolov 10-min gold.
+
+audio: ~/Downloads/2021-03-30 09.39.42 Zoom Meeting Vladimir Bogomolov.mp4
+reference: ../../../2021-03-30_09-39-42_Bogomolov_first_10min.json
+profile: ru_fold
+max_workers: 1
+
+defaults:
+  pipeline:
+    language: ru
+    min_speakers: 2
+    max_speakers: 2
+    duration_limit: 600
+  backend:
+    id: therapy_hybrid
+    options:
+      use_live_canary: true
+
+variants:
+  # Deterministic CTC-guided fallback — the no-LLM baseline.
+  - id: rule_based
+    backend:
+      options:
+        merge_provider: { id: rule_based }
+
+  # Local Qwen merge with the default instruction profile.
+  - id: qwen_baseline
+    backend:
+      options:
+        merge_provider: { id: ollama, model: qwen3:8b, instruction_variant: baseline_v1 }
+
+  # Same as qwen_baseline but with the verification-checklist instructions.
+  - id: qwen_verify
+    extends: qwen_baseline
+    backend:
+      options:
+        merge_provider: { instruction_variant: verification_checklist_v1 }
+
+  # Same Qwen setup but the larger local Gemma4-27B merge model.
+  - id: gemma4
+    extends: qwen_baseline
+    backend:
+      options:
+        merge_provider: { model: gemma4-27b }

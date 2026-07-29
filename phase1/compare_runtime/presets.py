@@ -159,22 +159,32 @@ def _validate_backend(payload: dict[str, Any] | None, path: Path) -> BackendSpec
     return BackendSpec(id=str(backend_id), options=dict(options))
 
 
+def build_compare_preset(payload: dict[str, Any], *, source: str | Path) -> ComparePreset:
+    """Validate an in-memory preset payload into a :class:`ComparePreset`.
+
+    Shared by file loading (``load_preset``) and the experiment-manifest layer so
+    both go through identical pipeline/backend validation.
+    """
+
+    source_path = Path(source)
+    preset_id = payload.get("id")
+    if not preset_id or not isinstance(preset_id, str):
+        raise ValueError(f"Preset id is required in {source_path}")
+    pipeline = _validate_pipeline(payload.get("pipeline") or {}, source_path)
+    return ComparePreset(
+        path=source_path,
+        preset_id=preset_id,
+        description=payload.get("description"),
+        pipeline=pipeline,
+        backend=_validate_backend(payload.get("backend"), source_path),
+    )
+
+
 def load_preset(path: str | Path) -> ComparePreset:
     """Load and validate one compare preset."""
 
     preset_path = Path(path)
-    payload = _load_json(preset_path)
-    preset_id = payload.get("id")
-    if not preset_id or not isinstance(preset_id, str):
-        raise ValueError(f"Preset id is required in {preset_path}")
-    pipeline = _validate_pipeline(payload.get("pipeline") or {}, preset_path)
-    return ComparePreset(
-        path=preset_path,
-        preset_id=preset_id,
-        description=payload.get("description"),
-        pipeline=pipeline,
-        backend=_validate_backend(payload.get("backend"), preset_path),
-    )
+    return build_compare_preset(_load_json(preset_path), source=preset_path)
 
 
 def discover_preset_paths(preset_paths: list[str] | None = None, preset_dirs: list[str] | None = None) -> list[Path]:
