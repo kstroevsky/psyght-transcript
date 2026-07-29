@@ -1,3 +1,0 @@
-bullmq
-redis
-python-dotenv
