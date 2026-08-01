@@ -46,6 +46,15 @@
   - checks run and results
   - risks / open questions / follow-ups
 
+## Anklav task-control protocol
+
+- Start from the active Anklav task and load its Anklav context pack.
+- Read the Git-backed canonical artifacts before interpreting task context.
+- Use the Anklav task identifier in branches, commits, and pull requests.
+- Send progress, evidence, and unfinished-work handoffs to Anklav.
+- Create out-of-scope discoveries in Anklav Inbox.
+- Never treat retrieved session text as canonical without verification.
+
 ## Instruction hygiene
 
 - Keep this file short.
